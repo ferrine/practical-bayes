@@ -1,0 +1,250 @@
+\documentclass{beamer}
+\usepackage{ferres}
+\framelogo{img/msu-logo}
+%math
+\input{math_commands.tex}
+\author{Max Kochurov}
+\title[Practical Bayes - Gaussian Processes Part 2]{Gaussian Processes Part 2}
+\institute[MSU]{Moscow State University}
+\date{Lecture 5}
+\begin{document}
+\begin{frame}
+	\maketitle
+\end{frame}
+\begin{frame}{Agenda}
+\tableofcontents
+\end{frame}
+\section{Introduction}
+\begin{frame}{Time Series, Classical Approach}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    If data has seasonality, you usually use \href{https://www.statsmodels.org/devel/examples/notebooks/generated/stl_decomposition.html}{STL} decomposition. However,
+    \begin{itemize}
+        \item Parameters are not interpretable, only decomposition is available
+        \item No uncertainty estimates
+        \item Quite strict on input values
+        \item Significantly less flexible in modelling
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/examples_notebooks_generated_stl_decomposition_6_0}
+        \caption{STL decomposition for CO2 data, Statsmodels}
+    \end{figure}
+    \end{column}
+\end{columns}
+\end{frame}
+\section{GP approach}
+\subsection{Introduction}
+\begin{frame}{GP decomposition}
+A Gaussian process can handle a complicated set of assumptions in addition to what STL provides
+\begin{itemize}
+    \item Granular seasonality (year + quarter + month + week)
+    \item Changepoint models
+    \item Flexible likelihood Function
+    \item Panel regression models
+    \item Missing values
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Typical Model}
+Typical model is additive
+    \begin{equation*}
+        x_t \sim \underbrace{g(t)}_{non-periodic} + \underbrace{s(t)}_{periodic} + \underbrace{h(t)}_{holidays}
+    \end{equation*}
+\begin{block}{Reference}
+    See more in \href{https://doi.org/10.7287/peerj.preprints.3190v2}{Prophet} preprint \cite{prophet_github}. Every time series model is unique
+\end{block}
+\end{frame}
+\begin{frame}{Reminder}
+$x \in \R^n$, $y\in\R$
+    \begin{align*}
+    Y &\sim \mathcal{GP}(\alert<3>{m(x)}, \alert<4>{k(x, x')})\\
+    \visible<2->{\begin{bmatrix} y_1 \\ \vdots \\ y_N \\ \end{bmatrix} &\sim
+\mathcal{N}\left(
+  \alert<3>{\begin{bmatrix} m(x_1)  \\\vdots\\ m(x_N)    \\ \end{bmatrix}} \,,
+  \alert<4>{\begin{bmatrix} k(x_1,x_1)    & \dots & k(x_1, x_N)    \\
+                  \vdots & \ddots& \vdots \\
+                  k(x_N, x_1) & \dots & k(x_N, x_N)  \\ \end{bmatrix}}
+        \right) \,}
+    \end{align*}
+    \begin{enumerate}
+        \item<2-> $\mathcal{GP}$ Gaussian Process - simply, a normal distribution with special mean $m(x)$ and covariance $k(x, x')$
+        \item<3-|alert@3> $m(x)$ - mean function, e.g.
+        \begin{itemize}
+            \item Linear regression $m(x) = x^\top \beta$
+            \item Simply Constant or Zero $m(x) = c$
+            \item Other custom functions $m(x) = \sin(x)$
+        \end{itemize}
+        \item<4-|alert@4> $k(x, x')$ - kernel function, simply - measure of similarity for $x$ and $x'$
+        \begin{itemize}
+            \item $[K]_{ij}=k(x_i, x_j)$ is an SPD matrix
+        \end{itemize}
+    \end{enumerate}
+\end{frame}
+\subsection{Non-periodic part}
+\begin{frame}{Non-periodic Part (mean function)}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+\begin{itemize}
+    \item<alert@2> Growth models
+    \item<alert@3> Linear trend models
+    \item<alert@4> Changepoint models
+\end{itemize}
+\visible<5>{
+\begin{block}{Extentions}
+    Extensions are possible, e.g. time dependent saturation in the growth model. See in \cite{prophet_github}
+\end{block}
+}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \only<2>{
+        \begin{figure}
+            \centering
+            \includegraphics[width=\linewidth]{img/growth_model}
+            \caption{Growth Model}
+        \end{figure}
+        \begin{equation*}
+            x = \frac{c}{1 + \exp(-k(t-m))}
+        \end{equation*}
+    }
+    \only<3>{
+        \begin{figure}
+            \centering
+            \includegraphics[width=\linewidth]{img/linear_trend}
+            \caption{Linear Trend Model}
+        \end{figure}
+        \begin{equation*}
+            x = \frac{c}{1 + \exp(-k(t-m))}
+        \end{equation*}
+    }
+    \only<4->{
+        \begin{figure}
+            \centering
+            \includegraphics[width=\linewidth]{img/changepoint_model}
+            \caption{Changepoint Model}
+        \end{figure}
+        \begin{equation*}
+            x = \begin{cases}
+                c_1, \quad&t<m\\
+                c_2, \quad&t\ge m
+            \end{cases}
+        \end{equation*}
+    }
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Holidays}
+ \begin{equation*}
+        h(t) = \operatorname{is-holiday}(t)
+    \end{equation*}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.9\linewidth]{img/holidays}
+        \caption{Holiday features}
+    \end{figure}
+\end{frame}
+\subsection{Periodic part}
+\begin{frame}{Periodic part (cov function)}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+        Granularities are important here. Multiple Periodic kernels can be used.
+            \begin{itemize}
+                \item Yearly
+                \item Quarterly
+                \item Monthly
+                \item Weekly
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+        \begin{figure}
+            \centering
+            \includegraphics[width=0.75\linewidth]{img/decomposed_time_series}
+            \caption{Seasonal Decomposition}
+        \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Lengthscales for Periodic Part}
+    \begin{block}{Hyperparameters}
+        Common sense driven lenthscale choice
+    \end{block}
+    \begin{itemize}
+        \item Week - couple of days make a change ($ls\approx3$)
+        \item Month - week makes sense for a dramatic change ($ls\approx7$)
+        \item Quarter - month makes sense for a dramatic change ($ls\approx30$)
+        \item Year - quarter makes sense for a dramatic change ($ls\approx90$)
+    \end{itemize}
+    \pause
+    \begin{alertblock}{In practice}
+        Everybody is using Fourier features as a replacement for Periodic Kernel
+    \end{alertblock}
+\end{frame}
+\subsection{The Model}
+\begin{frame}{Putting All Together}
+\begin{align*}
+    m(t) &= \underbrace{g(t)}_{non-periodic} + \underbrace{h(t)}_{holidays}\\
+    k(*, *) &= \visible<2->{\alert<2>{\alpha_{365}}}\operatorname{Periodic}(\rp=365, \rl=90)\\
+      &+ \visible<2->{\alert<2>{\alpha_{90}}}\operatorname{Periodic}(\rp=90, \rl=30)\\
+      &+ \visible<2->{\alert<2>{\alpha_{30}}}\operatorname{Periodic}(\rp=30, \rl=7)\\
+      &+ \visible<2->{\alert<2>{\alpha_{7}}}\operatorname{Periodic}(\rp=7, \rl=3)\\
+      &\visible<3->{\alert<3>{+ \beta \operatorname{ExpQuad}(\rl=90) +\operatorname{WhiteNoise}(\gamma)}}
+\end{align*}
+\visible<2->{
+\begin{block}{Missing Parts}
+\begin{enumerate}
+    \item<2-> Weights for periodic components
+    \item<3-> Trent violations from $g(t)$
+\end{enumerate}
+\end{block}
+}
+\end{frame}
+\subsection{Fourier Features}
+\begin{frame}{More Efficient Periodic}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Having at least one $\operatorname{Periodic}$ kernel in a large time series prevents from optimizations.
+    \begin{itemize}
+        \item Fourier features can be added as regressors
+        \item This allows reasonable periodicity to be present in the model
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/fourier-features.png}
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Choosing Features}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Every regular period has optimal number of fourier components (aka order)
+    \begin{itemize}
+        \item Weekly: 3
+        \item Monthly: 10
+        \item Yearly: 5
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/periods-order.png}
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Applications of Fourier Features}
+    \begin{itemize}
+        \item E.g. Prophet uses Fourier Features (FF)
+        \item It is VERY Fast, drop-in replacement for Periodic GP
+        \item Proven to be useful for Bayesian models
+    \end{itemize}
+    \includegraphics[width=\linewidth]{img/ff-posterior-predictive.png}
+\end{frame}
+\begin{frame}{Integrating into the model}
+    \includegraphics[width=\linewidth]{img/fourier-features-code.png}
+\end{frame}
+\include{stoch-vol}
+\begin{frame}[allowframebreaks]
+\frametitle{References}
+\bibliographystyle{abbrv}
+\bibliography{references.bib}
+\end{frame}
+\end{document}

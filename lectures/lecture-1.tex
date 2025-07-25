@@ -1,0 +1,595 @@
+\documentclass{beamer}
+\usepackage[notopbar]{ferres}
+\framelogo{img/msu-logo}
+
+%math
+\input{math_commands.tex}
+\author{Max Kochurov}
+\title[Practical Bayes - Bayesian Thinking]{Bayesian Thinking}
+\institute[MSU]{Moscow State University}
+\date{Lecture 1}
+\begin{document}
+\begin{frame}
+	\maketitle
+\end{frame}
+
+\begin{frame}{Agenda}
+\tableofcontents
+\end{frame}
+
+\section{About Me}
+\begin{frame}{About Me}
+\begin{columns}
+\begin{column}{0.75\linewidth}
+\begin{itemize}
+    \item Graduated from 
+        \begin{itemize}
+            \item BS - MSU EF (2018)
+            \item MS - Skoltech DS (2020)
+        \end{itemize}
+    \item Core developer at PyMC
+    \item Principle Data Scientist at PyMC Labs
+    \item BayesGroup alumni
+    \item Experience with 
+    \begin{itemize}
+        \item Large scale Deep Learning and Computer Vision
+        \item Differential geometry for Graph Neural Networks
+        \item Bayesian Methods for Deep Learning
+        \item Applied Bayesian Statistics for industry (e.g. AB testing, Bio-Informatics)
+    \end{itemize}
+\end{itemize}
+\end{column}
+\begin{column}{0.25\linewidth}
+\includegraphics[width=\linewidth]{img/msu-logo}
+\includegraphics[width=\linewidth]{img/sk-logo}
+\includegraphics[width=\linewidth]{img/bayesgroup-logo}
+\includegraphics[width=\linewidth]{img/pymc-logo}
+\includegraphics[width=\linewidth]{img/pymc-labs-logo}
+\end{column}
+\end{columns}
+\end{frame}
+\section{Formal stuff}
+\begin{frame}{In this course}
+You'll learn...
+\begin{itemize}
+    \item how to think critically about your model
+    \item tools to check the validity of the results
+    \item how to present your results
+    \item non-parametric models for time series 
+\end{itemize}
+\end{frame}
+\begin{frame}{Grading}
+The grade consists of
+    \begin{itemize}
+        \item 60\% Homework
+        \item 40\% Group project
+    \end{itemize}
+Grades will be assigned as
+    \begin{itemize}
+        \item 5 - $85\%+$
+        \item 4 - $65\%+$
+        \item 3 - $40\%+$
+        \item 2 - $<40\%$
+    \end{itemize}
+\end{frame}
+\section{Motivation}
+\begin{frame}{Why learn Bayesian methods?}
+    \begin{itemize}
+        \item Used in advanced research
+        \begin{itemize}
+            \item CBR - \href{https://www.cbr.ru/Content/Document/File/119374/bDSGE.pdf}{Bayesian DSGE (link)}
+            \item Papers using PyMC from google scholar is \href{https://scholar.google.com/scholar?hl=ru&as_sdt=2005&sciodt=0,5&cites=6936955228135731011&scipsc=&q=&scisbd=1}{overwhelming (link)}
+        \end{itemize}
+
+        \item Used in top notch industry
+        \begin{itemize}
+            \item \href{https://engineering.hellofresh.com/bayesian-media-mix-modeling-using-pymc3-for-fun-and-profit-2bd4667504e6}{Marketing at Indigo (link)}
+            \item \href{https://pubmed.ncbi.nlm.nih.gov/27442271/}{Drug development at Roche (link)}
+            \item \href{https://github.com/quantopian/bayesalpha}{Portfolio Theory at Quantopian (link)}
+            \item \href{https://support.everysk.com/hc/en-us/articles/1500001040721-Private-Investments}{Financial Advisory at Everysk (link)}
+            \item \href{https://discourse.pymc.io/t/job-opening-director-of-data-science-at-civiqs/1895}{Conducting Surveys at Civiqs (link)}
+        \end{itemize}
+        \item Growth opportunity
+        \begin{itemize}
+            \item Links many disciplines and career transitions
+            \item Hot non-boring job offerings in industry
+            \item Opens new research possibilities
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+\section{Bayesian Probability}
+\begin{frame}{Bayesian Probability}
+
+    \center {\Huge $\underbrace{p(\Theta|\gD)}_{\text{\includegraphics[width=2cm]{img/breaking-news}}}
+    =\frac{
+        \overbrace{p(\gD|\Theta)}^{\text{\includegraphics[width=2cm]{img/fact-label}}}\overbrace{p(\Theta)}^{\includegraphics[width=2cm]{img/thinker-statue}}
+        }{
+        p(\gD)
+        }$}
+    $$\gD = \text{Data}\qquad \Theta = \text{World State}$$
+\end{frame}
+\subsection{Prior}
+\begin{frame}{Prior Distribution}
+    \center \Huge $\textcolor{gray}{p(\Theta|\gD)
+    =}\frac{
+        \textcolor{gray}{p(\gD|\Theta)}\overbrace{p(\Theta)}^{\includegraphics[width=2cm]{img/thinker-statue}}
+        }{
+        \textcolor{gray}{p(\gD)}
+        }$
+\end{frame}
+\begin{frame}{Case Study: Where do priors come from?}
+Authors: Marielle Zondervan-Zwijnenburg, Margot Peeters, Sarah Depaoli, Rens van de Schoot \cite{where-do-priors-come-from}. Bayesian Econometrics example
+\begin{block}{Policy question}
+    Should we increase cannabis control for adolescents?
+\end{block}
+\begin{itemize}
+    \item<+-> Drugs long term influence on brain activity after early onset
+    \item<+-> Few to zero relevant prior research
+    \begin{itemize}
+        \item no exact match for cannabis case and brain activity
+        \item additional developing diseases 
+    \end{itemize}
+    \item<+-> Scarce, hard to obtain data
+    \item<+-> Classical econometrics fails (16 data points in the
+    group)
+    \item<+-> Expert knowledge feels important
+    \item<+-> Statistics is required for an informed decision
+\end{itemize}
+\end{frame}
+\begin{frame}{The Game}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/sopt}
+        \caption{Sample picture from self ordered pointing test}
+        \label{fig:my_label}
+    \end{figure}
+\end{frame}
+\begin{frame}{Quick intro}
+Measuring the existence and severity of cannabis usage
+    \begin{itemize}
+        \item You can measure brain development with a Game ( Self Ordered Pointing Test \cite{sopt})
+        \item Cannabis use is checked for participants
+        \item Adolescents pass the Game 2 times a year
+        \item The results are compared between the \textbf{heavy} and \textbf{light} cannabis users
+    \end{itemize}
+\begin{block}{Leftover questions}
+\begin{itemize}
+    \item How does the amount of cannabis used affects the brain development?
+    \item What age is sufficient to minimize the effect of usage?
+    \item What policy should be used to minimize the effect?
+\end{itemize}        
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Case Study: Prior Distribution}
+\begin{columns}
+\begin{column}{0.8\linewidth}
+To develop a prior researchers combined many sources of information
+    \begin{enumerate}
+        \item Knowledge before seeing any data
+        \visible<2->{
+        \begin{itemize}
+            \item Practical range for SOPT measure and growth rates
+        \end{itemize}}
+        \item Prior research results
+        \visible<3->{
+        \begin{itemize}
+            \item effect size of cannabis use was mixed with other diseases or had missing information
+            \item "13 out of 693 articles yielded useful information"
+        \end{itemize}}
+        \item Expert knowledge
+        \visible<4->{
+        \begin{itemize}
+            \item Prior research was reviewed by experts
+            \item Relation of diseases and behaviour to cannabis use
+        \end{itemize}}
+        \item Constraints
+        \visible<5->{
+        \begin{itemize}
+            \item Slope (SOPT development rate) is more positive than negative
+        \end{itemize}}
+        \item Model properties
+        \visible<6->{
+        \begin{itemize}
+            \item Sign of the quadratic term
+        \end{itemize}}
+    \end{enumerate}
+\end{column}
+\begin{column}{0.2\linewidth}
+\includegraphics[width=\linewidth]{img/emoji/see-no-evil-monkey}
+\includegraphics[width=\linewidth]{img/emoji/hear-no-evil-monkey}
+\includegraphics[width=\linewidth]{img/emoji/speak-no-evil-monkey}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Results}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.8\linewidth]{img/sopt-reprodusing}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Common Issues}
+In the research the prior was defended
+\begin{enumerate}
+    \item Prior is subjective
+    \visible<2->{
+    \begin{itemize}
+        \item Informed prior was compared to uninformed one
+    \end{itemize}
+    }
+    \item Prior specification is unclear
+    \visible<3->{
+    \begin{itemize}
+        \item The log book was provided with a full description of the choice
+        \item \url{https://osf.io/aw8fy/}
+    \end{itemize}
+    }
+    \item Prior is incorrectly specified
+    \visible<4->{
+    \begin{itemize}
+        \item There are still some issues with the analysis but it is out of the scope
+    \end{itemize}
+    }
+\end{enumerate}
+
+\end{frame}
+\subsection{Likelihood}
+\begin{frame}{Likelihood Distribution}
+    \center \Huge $\textcolor{gray}{p(\Theta|\gD)
+    =}\frac{
+        \overbrace{p(\gD|\Theta)}^{\text{\includegraphics[width=2cm]{img/fact-label}}}{p(\Theta)}
+        }{
+        \textcolor{gray}{p(\gD)}
+        }$
+\end{frame}
+
+\begin{frame}{Case Study: AB Test}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+        You sell nuts. You want sell more nuts!
+        How to increase sales?
+        \begin{itemize}
+            \item increase purchase probability
+            \visible<2->{
+            \begin{itemize}
+                \item Create a banner about healthy food
+                \item Add a banner with recipes
+                \item Improve the layout
+            \end{itemize}
+            }
+            \item increase order size
+            \visible<3->{
+            \begin{itemize}
+                \item Lower the price
+                \item Increase quality
+                \item Make better packaging
+            \end{itemize}
+            }
+        \end{itemize}
+    \visible<4->{
+        \begin{block}{What is better?}
+            AB testing can answer the question
+        \end{block}
+    }
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/nuts}
+        \includegraphics[width=0.4\linewidth]{img/chek}
+        \includegraphics[width=0.55\linewidth]{img/stonks}
+    \end{figure}
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Not all customers buy nuts}
+\begin{figure}
+    \centering
+    \foreach \n in {1,...,6}{%
+\includegraphics[width=0.049\linewidth]{img/chek}\hspace{0.001\linewidth}%
+\includegraphics[width=0.049\linewidth]{img/chek}\hspace{0.001\linewidth}%
+\hspace{0.05\linewidth}%
+}%
+\includegraphics[width=0.049\linewidth]{img/chek}\hspace{0.001\linewidth}%
+\end{figure}
+\begin{itemize}
+    \item A significant portion of data are just zeros
+    \item A classical 2 sample t-test assumes normality, not our case
+    \item Researchers admit t-test weaknesses in these cases \cite{when-t-test-fails}
+\end{itemize}
+\pause
+\begin{block}{Solution}
+    Think of a non-normal likelihood
+\end{block}
+\end{frame}
+\begin{frame}{Zero inflation}
+\begin{columns}
+\begin{column}{0.7\linewidth}
+\begin{block}{Zero Inflation}
+        Data property, when a significant portion of data is exactly zero
+    \end{block}
+
+\end{column}
+\begin{column}{0.3\linewidth}
+\includegraphics[width=\linewidth]{img/binary}
+\end{column}
+\end{columns}
+    
+    Examples:
+    \begin{itemize}
+        \item Wait times in a queue (no queue is zero)
+        \item Defects on a production line (no defects is zero)
+        \item Rain water level (sunny weather is 0 water level)
+        \item Purchase order statement (no nuts is zero)
+    \end{itemize}
+\end{frame}
+\begin{frame}{Zero Inflated Distribution}
+    \begin{block}{Wisdom}
+        Any distribution can be made zero inflated
+    \end{block}
+    \textbf{Example:} Zero Inflated Gamma.
+    
+    We'll have parameters $\alpha, \beta$ (from Gamma) and $p$ - probability of non-zero
+    
+    \textbf{Sampling:}
+    \begin{align*}
+        z &\sim \operatorname{Bernoulli}(p)\\
+        sample &\sim \begin{cases}
+        \operatorname{Gamma}(\alpha, \beta)&, z = 1\\
+        0&, z =0
+        \end{cases}
+    \end{align*}
+    \pause
+    \textbf{Log Probability Density Function}
+    \begin{equation*}
+        \log p(x\cond p, \alpha, \beta) = \begin{cases}
+        \log(1-p) &,x=0\\
+        \log(p) + \alert<3->{\frac {x^{\alpha -1}e^{-\beta x}\beta ^{\alpha }}{\Gamma (\alpha )}}
+        &,x> 0
+        \end{cases}
+    \end{equation*}
+\end{frame}
+\begin{frame}{Zero inflation as a mixture}
+    \begin{block}{Wisdom}
+        Zero inflation is a special case of a Mixture
+    \end{block}
+    Components:
+    \begin{enumerate}
+        \item $\operatorname{Constant}(0)$
+        \item $\operatorname{Gamma}(\alpha, \beta)$
+    \end{enumerate}
+    Mixture probability is $p$
+    \begin{equation*}
+        \operatorname{ZI-Gamma}(p, \alpha, \beta) \equiv \operatorname{Mixture}([1-p, p], [\operatorname{Constant}(0), \operatorname{Gamma}(\alpha, \beta)])
+    \end{equation*}
+\end{frame}
+\begin{frame}{Back to the example}
+    \begin{align*}
+        \text{make an order} &\sim \operatorname{Bernoulli}(p) \\
+        \text{order amount} &\sim \begin{cases}
+        \operatorname{Gamma}(\alpha, \beta)&, \text{make an order} = 1\\
+        0&, \text{make an order} =0
+        \end{cases}
+    \end{align*}
+\begin{columns}
+\begin{column}{0.7\linewidth}
+\includegraphics[height=3cm]{img/person}
+\includegraphics[height=3cm]{img/shop}
+\end{column}
+\begin{column}{0.3\linewidth}
+\includegraphics[height=1.5cm]{img/nut}\includegraphics[height=0.5cm]{img/nut}\includegraphics[height=0.5cm]{img/nut}\includegraphics[height=0.5cm]{img/nut}\\
+\includegraphics[height=1.5cm]{img/nut-crossed}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Takeouts}
+    \begin{itemize}
+        \item Good likelihood helps to get better sense of the problem
+        \begin{itemize}
+            \item split purchase probability and purchase amount
+            \item more possibilities over a classical t-test
+        \end{itemize}
+        \item Understanding a problem is a first step to a good likelihood
+    \end{itemize}
+\end{frame}
+% \begin{frame}{How AB test is connected to likelihood?}
+%     \begin{columns}
+%     \begin{column}{0.5\linewidth}
+%     \textbf{Classical AB test is 2 sample t-test}
+%     \begin{enumerate}
+%         \item Data in each group are normally distributed
+%         \item Data values are continuous
+%         \item The variances for the two independent groups are equal
+%         \item For very small groups of data, it can be hard to test these requirements
+%     \end{enumerate}
+%     \end{column}
+%     \begin{column}{0.5\linewidth}
+%     \textbf{Bayesian AB test}
+%     \begin{enumerate}
+%         \item Data follows any known distribution
+%         \item Data values may be both continuous or discrete
+%         \item The variances for the two independent groups may be any
+%         \item Any sample size is acceptable
+%     \end{enumerate}
+%     \end{column}
+%     \end{columns}
+%     \begin{block}{Takeout}
+%         Classical approach limits us in applications (likelihood choice)
+%     \end{block}
+% \end{frame}
+\subsection{Posterior}
+\begin{frame}{Posterior Distribution}
+\center \Huge $\underbrace{p(\Theta|\gD)}_{\text{\includegraphics[width=2cm]{img/breaking-news}}}
+    =\frac{
+        \textcolor{gray}{p(\gD|\Theta)p(\Theta)}
+        }{
+        \textcolor{gray}{p(\gD)}
+        }$
+\end{frame}
+\begin{frame}{Posterior Distribution}
+\begin{columns}
+\begin{column}{0.75\linewidth}
+\begin{align*}
+&p(\text{what you think}|\text{data})\\
+\propto &p(\text{data} |\text{what you think})p(\text{what you think})
+\end{align*}
+\end{column}
+\begin{column}{0.25\linewidth}
+\includegraphics[width=\linewidth]{img/meme/faith-meme}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Case Study: Marketing}
+    \begin{figure}
+    \centering
+    \includegraphics[height=1cm]{img/dollar}\includegraphics[height=1cm]{img/dollar}\includegraphics[height=1cm]{img/dollar}\\
+        \includegraphics[height=2cm]{img/vk-logo}
+        \includegraphics[height=2cm]{img/tiktok-logo}
+        \includegraphics[height=2cm]{img/fb-logo}
+        \includegraphics[height=2cm]{img/instagram-logo}
+        \includegraphics[height=2cm]{img/twitter-logo}\\
+        \includegraphics[height=2.5cm]{img/ads-icon}
+        \includegraphics[height=2.5cm]{img/MMM-logo}
+    \end{figure}
+\begin{block}{\textbf{M}edia \textbf{M}ix \textbf{M}odel}
+    MMM - helps to evaluate marketing channels from historical data
+\end{block}
+\end{frame}
+\begin{frame}{Uncertainty}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+Media Mix Models (\href{https://engineering.hellofresh.com/bayesian-media-mix-modeling-using-pymc3-for-fun-and-profit-2bd4667504e6}{read more here})
+    \begin{itemize}
+        \item How valuable is additional \$1000 invested in VK? Or Facebook?
+        \item How certain is the model estimation?
+        \item High value, high uncertainty or low value low uncertainty?
+        \item How to allocate money?
+    \end{itemize}
+\end{column}
+\begin{column}{0.5\linewidth}
+\includegraphics[width=\linewidth]{img/high-value-high-uncertainty}
+\end{column}
+\end{columns}
+\visible<2>{
+\begin{block}{Takeout}
+Uncertainty helps to make more informed decision
+\end{block}
+}
+\end{frame}
+\begin{frame}{Recap}
+    In Bayesian framework you have:
+    \begin{itemize}
+        \item Prior = What I think the problem is
+        \item Likelihood = What the facts I have
+        \item Posterior = What the problem actually is \textit{given priors and data}
+    \end{itemize}
+\end{frame}
+\section{Model}
+\begin{frame}{The Model}
+    \center
+    { \Huge $p_\gM(\Theta|\gD)
+    =\frac{
+        p_\gM(\gD|\Theta)p_\gM(\Theta)
+        }{
+        p_\gM(\gD)
+        }$}
+\vfill
+\begin{block}{}
+Treat the model as a "one of many" descriptions of the problem.
+\end{block}
+\end{frame}
+\begin{frame}{Bias - Variance trade-off}
+\begin{columns}
+\begin{column}{0.4\linewidth}
+Getting to a good model
+\begin{enumerate}
+    \item Start with a over-simplified model
+    \item Make sure it samples well
+    \item Increase the complexity
+    \item ...
+    \item Choose the best model using cross validation
+\end{enumerate}
+\end{column}
+\begin{column}{0.6\linewidth}
+\includegraphics[width=\linewidth]{img/bias-variance}
+\end{column}
+\end{columns}
+\visible<2->{
+\begin{block}{Common mistake}
+Starting with a complicated model make debugging painful
+\end{block}
+}
+\end{frame}
+\begin{frame}{Case Study: generalized additive models}
+\begin{equation*}
+    y(t)= \underbrace{g(t)}_{\text{trend}} + \underbrace{s(t)}_{\text{seasonality}} + \underbrace{r(X_t)}_{\text{regressors}} + \varepsilon_t
+\end{equation*}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+Adding more and more complexity
+\begin{enumerate}
+    \item start with a simple trend model
+    \item add seasonality
+    \item add fine seasonality details, holidays or other features
+\end{enumerate}
+\end{column}
+\begin{column}{0.5\linewidth}
+\includegraphics[width=\linewidth]{img/airline_passengers}
+\end{column}
+\end{columns}
+\end{frame}
+\section{Discussion}
+\begin{frame}{When Bayes?}
+Bayesian modeling does not fit all the use cases at once
+\begin{itemize}
+    \item It requires extra skills compared to classical machine learning
+    \item You might not need the extra "uncertainty"
+\end{itemize}
+\pause
+\begin{block}{Proposition}
+    Bayesian modeling starts when fit-predict is useless
+\end{block}
+
+\pause
+\begin{itemize}
+    \item You have interpretable confidence intervals
+    \item You have flexibility and control over the model
+    \item You have reliable low data applications
+\end{itemize}
+\begin{alertblock}{It comes with a price...}
+You ultimately HAVE to understand the model
+\end{alertblock}
+\end{frame}
+\section{Supplementary}
+\subsection{Programming}
+\begin{frame}{PyMC}
+\begin{columns}
+\begin{column}{0.7\linewidth}
+\begin{enumerate}
+    \item Pure Python!
+    \item Automated inference
+    \item No complicated formulas for MCMC!
+    \item Visualizations with ArviZ
+    \item Reproducible research
+    \item Used in industry applications
+    \item Huge community
+    \item Active development
+\end{enumerate}
+\url{https://github.com/pymc-devs/pymc}
+\end{column}
+\begin{column}{0.3\linewidth}
+\includegraphics[width=\linewidth]{img/pymc-logo.png}
+\includegraphics[width=\linewidth]{img/arviz-logo.png}
+\includegraphics[width=\linewidth]{img/python-logo.png}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}[allowframebreaks]
+\frametitle{References}
+\bibliographystyle{abbrv}
+\bibliography{references.bib}
+\end{frame}
+
+\end{document}
