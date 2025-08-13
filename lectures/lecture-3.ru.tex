@@ -1,0 +1,603 @@
+\documentclass{beamer}
+\usepackage[OT2,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian,english]{babel}
+
+\usepackage{ferres}
+\usepackage{caption}
+\usepackage{subcaption}
+\framelogo{img/msu-logo}
+%math
+\input{math_commands.tex}
+\author{Максим Кочуров}
+\title[Прикладные байесовские методы]{Байесовское А/Б тестирование}
+\institute[МГУ]{МГУ им. М.В. Ломоносова}
+\date{Лекция 3}
+\begin{document}
+\begin{frame}
+	\maketitle
+\end{frame}
+
+\begin{frame}{Содержание}
+\tableofcontents
+\end{frame}
+\section{Классический подход}
+\subsection{Предположения}
+\begin{frame}{Как это делается: классический подход}
+``Если ваше p-значение равно 0.05, это значит, что если нулевая гипотеза верна, вы получите такое же или более экстремальное значение тестовой статистики в $5\%$ случаев.''%"if your p-value is 0.05, that means that 5\% of the time you would see a test statistic at least as extreme as the one you found if the null hypothesis was true"
+
+    \begin{enumerate}
+        \item p-значения используются в тысячах статей%value is used in thousands of research papers
+        \item p-значения очень популярны из-за простоты интерпретации%value is extremely popular for its easy interpretation
+        \item легко вычислить доверительные интервалы%easy to calculate confidence intervals
+    \end{enumerate}
+    \pause
+    \begin{alertblock}{Вы уверены?}
+    Действительно ли вы понимаете смысл p-значений?%Do you understand the nature of the p-value?
+    \end{alertblock}
+\end{frame}
+\begin{frame}{Понимаете ли вы p-значения?}
+    \textbf{Что из нижеперечисленного верно?}
+
+    \begin{enumerate}
+        \item $p$ -- вероятность того, что верна нулевая гипотеза %the probability that the null hypothesis is true.
+        \item $(1-p)$ -- вероятность того, что верна альтернативная гипотеза%this is the probability that the alternative hypothesis is true.
+        \item $P \le 0.05$ значит, что нулевая гипотеза неверна и дожна быть отвергнута %A statistically significant test result $(P \le 0.05)$ means that the test hypothesis is false or should be rejected.
+        \item Значение $P > 0.05$ значит, что эффект отсутствует%The value $P > 0.05$ means that no effect was observed.
+    \end{enumerate}
+    \pause
+    \begin{alertblock}{Использовать p-значение плохо?}
+    Я не предлагаю отказаться от p-значений, я предлагаю лучше понять их%I do not urge you to give up p-values, but I urge you to add more understanding.
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Интерпретация p-значений}
+%Greatest insights into p-values:
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\linewidth]{img/confidence-intervals}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Тестирование гипотез во фреймворке ``H0 против H1''}
+    Вы уже знаете, что такое тестирование гипотез, t-тест, p-значение.%You should know what is hypothesis testing, t-test, p-values.
+    \begin{itemize}
+        \item гипотеза о матожидании в 1 выборке: ${\displaystyle t={\frac {Z}{s}}={\frac {{\bar {X}}-\mu }{{\widehat {\sigma }}/{\sqrt {n}}}}}$
+        \item гипотеза о равенстве матожиданий в 2-х выборках ${\displaystyle t={\frac {{\bar {X}}_{1}-{\bar {X}}_{2}}{s_{p}{\sqrt {\frac {2}{n}}}}}},\quad{\displaystyle s_{p}={\sqrt {\frac {s_{X_{1}}^{2}+s_{X_{2}}^{2}}{2}}}}, ...$
+        \item гипотеза о равенстве дисперсий $...,{\displaystyle s_{p}={\sqrt {\frac {\left(n_{1}-1\right)s_{X_{1}}^{2}+\left(n_{2}-1\right)s_{X_{2}}^{2}}{n_{1}+n_{2}-2}}}}$
+    \end{itemize}
+    \begin{block}{Слишком сложно}
+    Чем меньше предположений, тем сложнее вычисления и реализация%The less assumptions we have, the more complicated is math and implementation
+    \end{block}
+\end{frame}
+
+\begin{frame}{Байесовский подход}
+\begin{alertblock}{Осторожно с интерпретацией p-значений!}
+\begin{itemize}
+    \item Частотнические доверительные интервалы -- это не наиболее вероятные значения% ИМХО странное утверждение, потому что ДИ -- это не единственное значение, а набор значений.
+    %Frequentist confidence intervals are not the most probable values
+    \item p-значение -- не вероятность того, что ``нет эффекта'' %- not the probability of "no effect"
+\end{itemize}
+\end{alertblock}
+Байесовский подход -- про интерпретацию:%Bayesian approach is about interpretation:
+\begin{columns}
+    \begin{column}[t]{0.5\linewidth}
+\textbf{Хорошо}
+\begin{itemize}
+    \item Проще объяснить%Easier to explain
+    \item Проще превратить в действия%Easier to turn into actions
+\end{itemize}        
+    \end{column}
+    \begin{column}[t]{0.5\linewidth}
+\textbf{Плохо}
+\begin{itemize}
+    \item Нужно разбираться в предметной области%You have to understand the domain problem
+\end{itemize}
+    \end{column}
+\end{columns}
+\end{frame}
+
+\section{Байесовское тестирование гипотез}
+\begin{frame}{Байесовские инструменты для визуализации}
+    \begin{enumerate}
+        \item Интервал наибольшей плотности (Highest Density Interval, HDI)
+        \item Region of Practical Equivalence (RoPE)
+        \item Коэффициент Байеса (Bayes Factor)
+        \item Возможность кастомизации%Custom
+    \end{enumerate}
+\end{frame}
+\subsection{Интервал наибольшей плотности}
+\begin{frame}{Интервал наибольшей плотности}
+    \begin{columns}
+    \begin{column}{0.5\linewidth}
+    Наиболее популярный способ интерпретации апостериорного распределения%HDI The most popular way to interpret the posterior
+    \begin{enumerate}
+        \item Область наиболее вероятных значений%Represents a range of most probable values
+        \item Просто вычислить, интерпретировать и визуализировать%Easy to visualize
+    \end{enumerate}
+    \begin{block}{Пример}
+    \begin{itemize}
+        \item Размер эффекта -- в интервале $[A,B]$ с вероятностью 0.95%With 95\% probability effect size in range [A, B]
+        \item Интервал $[A,B]$ содержит 95\% наиболее вероятных размеров эффекта%Range [A, B] represents 95\% of most probable effect sizes
+    \end{itemize}
+    \end{block}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/hdi}
+        \caption{Интервал наибольшей плотности}
+    \end{figure}
+    \end{column}
+    \end{columns}
+\end{frame}
+\subsection{Region of Practical Equivalence}
+\begin{frame}{Region of Practical Equivalence (RoPE)}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+RoPE -- способ оценить ``значимость'' оценки параметра. Алгоритм использования:%is a common way to say if a parameter estimate is "significant". The use case:
+\begin{enumerate}
+    \item Пусть эффект меньше 0.1 ``незначим''%You do not care if the effect size is less than $0.1$
+    \item Нарисовать ``регион незначимости'' на одном графике с апостериорными распределениями%Plot the region overlapping with the posterior
+    \item Определить значимость%Decide
+\end{enumerate}
+\begin{block}{Пример}
+    Размер эффекта эксперимента ``E'' находится вне RoPE, поэтому эффект значим.%The effect size "E" is out of the region of practical equivalence so we treat it as a significant one
+\end{block}
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/rope}
+    \caption{График RoPE}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Коэффициент Байеса}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    По-моему, эту статистику сложнее всего объянить.%IMO the most complicated to explain statistic.
+    \begin{enumerate}
+        \item Похоже на частотническое p-значение%Similar to the Frequentist p-value
+        \item Сложнее интерпретировать и объяснять%Harder to interpret and explain to people
+        \item Проверяет H0 против H1 для $x_0$
+    \end{enumerate}
+    \begin{block}{Определение}
+        Коэффициент Байеса -- отношение правдоподобия одной гипотезы к правдоподобию второй гипотезы
+        %Bayes Factor is defined as the ratio of the likelihood of one particular hypothesis to the likelihood of another hypothesis
+    \end{block}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/bayes-factor}
+        \caption{$\text{BF} = \frac{
+        \textcolor{red}{\operatorname{pdf}_{H1}(x_0)}
+        }{
+        \textcolor{blue}{\operatorname{pdf}_{H0}(x_0)}
+        }$}
+        \label{fig:my_label}
+    \end{figure}
+    \end{column}
+\end{columns}
+\end{frame}
+\subsection{Произвольные гипотезы}
+\begin{frame}{Другие запросы к апостериорному распределению}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Можно пойти дальше:%You can do much more!
+    \begin{enumerate}
+        \item $P(A < 0)$
+        \item $P(A > B)$
+        \item $P(\max(A) > \max(B))$
+        \item $P(A = \argmax(A, B, C, D))$
+        \item $P(\text{выручка}(X, \Theta) > \$100)$
+        \item Квантили - $Q_{0.05}(\text{выручка}(X, \Theta))$
+    \end{enumerate}
+    \end{column}
+     \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/p_a_lt_0}
+        \caption{$P(A<0)$}
+    \end{figure}
+    \end{column}
+\end{columns}
+    
+\end{frame}
+\subsection{}
+\begin{frame}{Выводы}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Байесовский нож для проверки гипотез%Bayesians have a Swiss Knife for Hypothesis Checking
+    \begin{enumerate}
+        \item Много способов интерпретации результатов%Numerous ways to interpret results
+        \item Ответ не в формате ``да/нет''%Not a Yes/No answer
+        \item Отражает неопределённость%Uncertainty is obviously represented
+        \item Гибкость анализа%Flexibility in analysis
+        \item Просто реализовать%Easy to implement
+        \item Просто интерпретировать%Easy to interpret
+    \end{enumerate}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/swiss-knife}
+        \caption{байесовская проверка гипотез}
+    \end{figure}
+    \end{column}
+\end{columns}
+\section{А/Б тестирование}
+\end{frame}
+\begin{frame}{Типы задач}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Байесовское А/Б тестирование широко применимо%Bayesian AB testing is widely applicable
+    \begin{enumerate}
+        \item<alert@1> Дискретные наблюдения (просмотры и клики)%Discrete Observations (views and clicks)
+        \item<alert@2> Непрерывные наблюдения (время чтения, потраченные деньги)%Continuous Observations (read time, spent amount)
+        \item<alert@3> С предикторами контекста (Context Predictors; CUPED\cite{kohavi-2013-cuped})%With Context Predictors (CUPED\cite{kohavi-2013-cuped})
+        \item<alert@4> С иерархией (регионы)%With Hierarchies (Regions)
+    \end{enumerate}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \only<1>{
+        \includegraphics[width=0.8\linewidth]{img/mobile_computing-ab_testing.png}
+    }
+    \only<2>{
+    \includegraphics[width=0.8\linewidth]{img/reading-time.jpeg}
+    }
+    \only<3>{
+    \includegraphics[width=0.8\linewidth]{img/cuped.png}
+    }
+    \only<4>{
+    \includegraphics[width=0.8\linewidth]{img/map.jpeg}
+    }
+    \end{column}
+\end{columns}
+\end{frame}
+\subsection{Априорные распределения}
+\begin{frame}{Подходы к априорным распределениям}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    \begin{block}{Прирост (uplift) $\lambda$}
+        Изменение относительно базового уровня%Relative change to the baseline
+    \end{block}
+    Когда вы начинаете эксперимент, не знаете ли вы что-то о множестве возможных результатов воздействия?
+    %When you start the experiment, don't you know anything about the set of possible outcomes?
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \includegraphics[width=\linewidth]{img/lambda_prior}
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Подготовка}
+Вы готовитесь к проведению эксперимента над группой B с контрольной группой A. Вы можете быть заинтересованы в увеличении какой-либо статистики (например, среднего чека).
+%You are in the preparation to run an experiment B vs holdout A. You might be interested in increasing the mean of statistics (average bill)
+\begin{itemize}
+\pause
+\item<+-> Ожидаете ли вы роста на 1000\%? Точно нет
+\item<+-> Ожидаете ли вы роста на 100\%? Точно нет
+\item<+-> Ожидаете ли вы роста на 10\%? Скорее нет
+\item<+-> Ожидаете ли вы роста на 3\%? Возможно
+\item<+-> Ожидаете ли вы падения на 3\%? Возможно
+\item<+-> Ожидаете ли вы падения на X\%? Ваш ответ
+\end{itemize}
+\begin{alertblock}{Относительное или абсолютное изменение?}
+    Должно быть понятно, относительное это изменение или абсолютное!
+    %Make it clear if the change is relative or absolute!
+\end{alertblock}
+\end{frame}
+\section{Пример}
+\begin{frame}{Примерный алгоритм работы}
+\large
+    \begin{itemize}
+        \item Как составить эксперимент?%How to set up the experiment?
+        \item Как спланировать его исполнение?%How to plan the execution?
+        \item Как интерпретировать результаты?%How to interpred the results?
+    \end{itemize}
+\end{frame}
+\subsection{Априорное распределение}
+\begin{frame}{Пример с биномиальной моделью}
+    \begin{columns}
+    \begin{column}{0.5\linewidth}
+    \begin{itemize}
+        \item Бинарный ответ: да/нет%The example is binary Yes/No choice
+        \item Наблюдения имеют распределение Бернулли%Observations follow the Bernoulli likelihood
+    \end{itemize}
+    \begin{align*}
+        x^A_i & \sim \operatorname{Bernoulli}(p_A)\\
+        x^B_i& \sim \operatorname{Bernoulli}(p_B)
+    \end{align*}
+    Есть ли у нас дополнительная информация?%Do we have additional information?
+    \visible<2->{
+    \begin{itemize}
+        \item Историческон значение $\bar p$
+        \item Ожидаемое улучшение $\pm \bar \sigma \%$ (например, $\pm 0.01\%$)
+    \end{itemize}
+    }
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \includegraphics[width=\linewidth]{img/ab_testing.jpeg}
+    \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Добавление дополнительной информации}
+    \begin{columns}
+    \begin{column}{0.5\linewidth}
+    Бета распределение можно параметризовать специальным образом%We can parametrize Beta distribution in a special way
+    \visible<2->{
+    \begin{align*}
+        X & \sim \operatorname{Beta}(\alpha, \beta)\\
+        \mu &= \frac{\alpha}{\alpha + \beta}\\
+        \sigma &= \frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}\\
+        X &\sim \operatorname{Beta}(\mu, \sigma) \Rightarrow\\
+        &\Rightarrow \begin{cases}
+        \alpha &= \mu \kappa\\
+        \beta &= (1-\mu)\kappa\\
+        \text{where}& \kappa = \frac{\mu (1 - \mu)}{\sigma^2} - 1\\
+        \end{cases}
+    \end{align*}
+    }
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \includegraphics[width=0.8\linewidth]{img/beta_param}
+    \begin{align*}
+        G &\in \{A, B\}\\
+        x^G_i & \sim \operatorname{Bernoulli}(p_G)\\
+        p_G &\sim \operatorname{Beta}(\alpha_G, \beta_G)\;s.t. \\
+        \E p_G &= \bar p, \\
+        \operatorname{Var} p_G &= \bar \sigma^2
+    \end{align*}
+    \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Спецификация априорного распределения}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\begin{block}{Кейс}
+Исторические уровни конверсии -- около 5\% (и фиксированы). Мы ожидаем, что после внедрения решения произойдет изменение примерно на 1\% в абсолютном выражении ($\bar\sigma$), или 20\% в \textbf{относительном} ($\bar\delta$).%Our historical levels of conversion are about 5\% (and fixed). We expect about 1\% \textbf{absolute} change ($\bar\sigma$) after implementing the solution. Or, similarly, 20\% \textbf{relative} change ($\bar\delta$).
+\end{block}
+\begin{align*}
+    \bar p &= 0.05, \;\bar \sigma = 0.01 = \bar\delta \cdot 0.05\\
+    G &\in \{A, B\}\\
+    p_G &\sim \operatorname{Beta}(\mu=\bar p, \sigma=\bar\sigma)
+\end{align*}
+\end{column}
+\begin{column}{0.5\linewidth}
+\includegraphics[width=\linewidth]{img/beta_param_1}
+\visible<2>{
+\begin{block}{Вывод}
+Такая параметризация бета распределения даёт более интерпретируемые априорные распределения
+%Special Beta parametrization leads to more interpretable priors
+\end{block}
+}
+\end{column}
+\end{columns}
+\end{frame}
+\subsection{Подготовка эксперимента}
+\begin{frame}{Важные вопросы перед началом}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\begin{itemize}
+        \item Сколько времени можно выделить для эксперимента?%How much time can be allocated for the test?
+        \begin{itemize}
+            \item Насколько точным тогда будет решение?%How accurate is the decision then?
+        \end{itemize}
+        \item Насколько точным должно быть решение?%How accurate should be the decision?
+        \begin{itemize}
+            \item Сколько времени долно быть выделено, чтобы достичь заданной точности?%How much time will be allocated for the test?
+        \end{itemize}
+    \end{itemize}
+    \visible<2>{
+    \begin{block}{Невозможность}
+    Нельзя одновременно быстро собирать данные и быть точным
+    %You can't be fast in data collection and accurate at the same time
+    \end{block}}
+\end{column}
+\begin{column}{0.5\linewidth}
+\includegraphics[width=\linewidth]{img/fast_accurate}
+\end{column}
+\end{columns}
+\end{frame}
+\subsection{Parameter Recovery}
+\begin{frame}{Parameter Recovery Study}
+    Использование симуляций, чтобы лучше понять свойства модели.
+    %Parameter recovery is a simulated experiment to know your model better.
+    \begin{enumerate}
+        \item Сгенерировать данные из модели с известными параметрами%Generate data from a model configuration
+        \item Сделать вид, что параметры неизвестны%Pretend you do not know the true values
+        \item Оценить параметры из симулированных данных%Run inference for your model
+        \item Сравнить оценки с истинными значениями%Compare estimated parameters and ground truth ones
+    \end{enumerate}
+    Используя результаты, ответить на вопросы:%Given the results
+    \begin{itemize}
+        \item Насколько хорошо оцениваются параметры?%How well can you infer the model state?
+        \item<alert@2> Как результаты зависят от размера выборки?%How does data size affects the results?
+        \item Есть ли неидентифицируемые параметры?%Are there unidentifiable parameters?
+    \end{itemize}
+    \begin{block}{Рекомендуемое чтение}
+    Глава 4 в \href{https://arxiv.org/abs/2011.01808}{Bayesian Workflow}
+    \end{block}
+\end{frame}
+\begin{frame}{Parameter Recovery в А/Б тестировании}
+\begin{columns}
+\begin{column}{0.6\linewidth}
+Имеем:
+\begin{itemize}
+    \item<1-> Эффект значим, если $|p-\bar p|>\bar \sigma$
+    \item<2-> Игнорируем эффект, если $|p-\bar p|<\bar \sigma$
+    \item<3-> Насколько большое нужно N, чтобы определить значимость? %to decide if the effect is significant?
+    \item<4-> $N=0$, $N=1000$, $N=100000$?
+    \item<5-> Какую метрику использовать для оценки эффективности?%What metric to use to evaluate detect effectiveness?
+\end{itemize}
+\visible<6>{
+\begin{block}{Ключевое наблюдение}
+Обнаружение эффекта -- задача классификации: \textcolor{red}{отрицательные}, нейтральные, \textcolor{green}{положительные} эффекты. Можно использовать ROC-AUC.
+%Effect detection is a classification problem. E.g. \textcolor{red}{negative}, neutral, \textcolor{green}{positive} effects. We can use ROC-AUC for multiclass
+\end{block}
+}
+\end{column}
+\begin{column}{0.4\linewidth}
+Модель
+\begin{align*}
+    i&\in 1\dots N\\
+    x_i & \sim \operatorname{Bernoulli}(p)\\
+    p &\sim \operatorname{Beta}(\mu=\bar\mu, \sigma=\bar\sigma)
+\end{align*}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{А/Б тестирование как классификация}
+\begin{columns}
+\begin{column}{0.6\linewidth}
+Определения для задачи классификации
+%Some definitions of our classification setup
+\begin{enumerate}
+    \item<2-> Таргет \alert<2>{$\hat p$} -- для \alert<3>{генерации данных}
+    \item<3-> Метки
+    \begin{itemize}
+        \item "0" при $\hat p < \bar p - \bar \sigma$ (отриц.)
+        \item "1" при $\bar p - \bar \sigma < \hat p < \bar p + \bar \sigma$ (нейтр.)
+        \item "2" при $\hat p > \bar p + \bar \sigma$ (положит.)
+    \end{itemize}
+    \item<4-> Предсказания (вероятности на основе апостериорного распределения): $P(p <0\cond X_{\alert<5>{1:N}})$, $P(p \approx 0 \cond X_{\alert<5>{1:N}})$, $P(p >0 \cond X_{\alert<5>{1:N}})$
+\end{enumerate}
+\visible<5->{
+\begin{block}{Симуляционный эксперимент}
+\begin{enumerate}
+    \item для $\hat p\in \dots$ и \alert<5>{$N\in \dots$} получить $p(p\cond X_{\alert<5>{1:N}})$
+    \item для \alert<5>{$N\in \dots$} вычислить ROC-AUC
+\end{enumerate}
+\end{block}
+}
+\end{column}
+\begin{column}{0.4\linewidth}
+Модель
+\begin{align*}
+    i&\in \alert<5>{1\dots N}\\
+    \alert<3>{x_i} & \alert<3>{\sim \operatorname{Bernoulli}(p)}\\
+    \alert<2>{p} &\alert<2>{\sim \operatorname{Beta}(\mu=\bar\mu, \sigma=\bar\sigma)}
+\end{align*}
+\alert<4>{Апостериорное распределение $p(p\cond X_{\alert<5>{1:N}})$}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{ROC-AUC в действии}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.95\linewidth]{img/roc-auc}
+        \caption{ROC-AUC возрастает с ростом числа наблюдений}
+    \end{figure}
+    \begin{columns}
+    \begin{column}{0.5\linewidth}
+    \textbf{Ограничение: время}
+    \begin{enumerate}
+        \item Обсудите максимальный запас времени%Discuss maximum affordable time
+        \item Опирайтесь на график ROC-AUC%Consult the plot for the expected ROC-AUC in decision
+    \end{enumerate}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \textbf{Ограничение: ROC-AUC}
+    \begin{enumerate}
+        \item Обсудите минимальное требуемое значение ROC-AUC%Discuss minimum required ROC-AUC
+        \item График подскажет ожидаемый объём выборки%Consult the plot for the expected data size
+    \end{enumerate}
+    \end{column}
+    \end{columns}
+\end{frame}
+\subsection{Симуляции из апостериорного распределения}
+\begin{frame}{После оценки параметров}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\textbf{Ситуация:} вы провели эксперимент в течении заданного времени. Главные вопросы:%you've run the test for the aforehand specified duration. Key questions:
+    \begin{enumerate}
+        \item Какую альтернативу выбрать?%Which alternative to choose?
+        \item Какой критерий сравнения?%What is the comparison criterion?
+        \item Сопоставим ли этот критерий с реальной жизнью?%Is the criterion connected to the real life?
+    \end{enumerate}
+    \visible<2>{
+    \begin{block}{Более хорошая метрика}
+    Хорошая метрика та, которая связана с ожидаемым доходом.
+    %A good metric is the one that is connected to expected profit.
+    \end{block}
+    }
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/uplift_results_example}
+    \caption{Пример графика ROPE}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Интерпретация апостериорного распределения}
+    Как можно вычислить метрику получше?%How can we calculate a better mectic?
+    \begin{itemize}
+        \item<2-> Привязать коэффициент конверсии $p_A$ или $p_B$ к количеству клиентов компании%Connect the conversion rate $p_A$ or $p_B$ to the company size audience
+        \item<3-> Использовать ``стоимость клиента'' в качестве показателя денежного эффекта%Use "Customer Value" as a proxy for money effect
+    \end{itemize}
+    Это может выглядеть так:%It could look like this:
+    \visible<4->{
+    \begin{align*}
+    &\text{монетизация}_A =\\ \text{(стоимость клиента)} \times &\text{(число клиентов)} \times \alert<5>{\Delta p_A} - \text{(стоимость реализации)}
+    \end{align*}
+    }
+    \visible<5->{
+    \begin{block}{Испоьзуйте апостериорное распределение}
+    Можно вычислить $p(\text{монетизация}_A\cond X_A)$ из $p(p_A\cond X_A)$
+    \end{block}}
+\end{frame}
+\begin{frame}{Апостериорное распределение монетизации}
+\begin{equation*}\text{(стоимость клиента)} \times \text{(число клиентов)} \times \Delta p_A - \text{(стоимость реализации)}
+    \end{equation*}
+    \begin{columns}
+    \begin{column}{0.4\linewidth}
+    \begin{itemize}
+        \item Стоимости реализации могут различаться%Implementation cost might differ
+        \item Стоимости клиентов могут зависеть от сценариев%Per User Value might have scenarios
+        \item Вы соединяете эксперимент с бизнесом%You connect the experiment with business
+        \item Сравните результаты с неопределённостью%Compare outcomes with uncertainty
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.6\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.9\linewidth]{img/monetization}
+        \caption{$p(\text{монетизация}_G\cond X_G)$}
+    \end{figure}
+    \end{column}
+    \end{columns}
+\end{frame}
+\section{}
+\begin{frame}{Выводы}
+Реальные А/Б тесты полны трудностей. Байесовские методы могут сделать гораздо больше для превращения данных в действие.
+%Real Life AB testing is full of challenges. Bayesian tools can do much more to turn data into action.
+    \begin{enumerate}
+        \item Формализация статистического теста%Framing the statistical test
+        \begin{itemize}
+            \item Определение априорных распределений%Setting priors
+            \item Определение правдоподобия%Setting likelihood
+        \end{itemize}
+        \item Планирование эксперимента%Planning the experiment
+        \begin{itemize}
+            \item Parameter recovery study
+        \end{itemize}
+        \item Байесовское принятие решений для выбора действия%Bayesian decision making to take action
+        \begin{itemize}
+            \item Функции потерь%Loss functions
+            \item Тестирование сценариев%Scenario testing
+        \end{itemize}
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+\frametitle{Библиография}
+\bibliographystyle{abbrv}
+\bibliography{references.bib}
+\end{frame}
+\end{document}

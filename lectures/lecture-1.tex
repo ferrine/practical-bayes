@@ -1,41 +1,45 @@
 \documentclass{beamer}
+\usepackage[OT2,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian,english]{babel}
+
 \usepackage[notopbar]{ferres}
 \framelogo{img/msu-logo}
 
 %math
 \input{math_commands.tex}
-\author{Max Kochurov}
-\title[Practical Bayes - Bayesian Thinking]{Bayesian Thinking}
-\institute[MSU]{Moscow State University}
-\date{Lecture 1}
+\author{Максим Кочуров}
+\title[]{Прикладные байесовские методы}
+\institute[МГУ]{МГУ им. М.В. Ломоносова}
+\date{Лекция 1}
 \begin{document}
 \begin{frame}
 	\maketitle
 \end{frame}
 
-\begin{frame}{Agenda}
+\begin{frame}{Содержание}
 \tableofcontents
 \end{frame}
 
-\section{About Me}
-\begin{frame}{About Me}
+\section{Обо мне}
+\begin{frame}{Обо мне}
 \begin{columns}
 \begin{column}{0.75\linewidth}
 \begin{itemize}
-    \item Graduated from 
+    \item Выпускник
         \begin{itemize}
-            \item BS - MSU EF (2018)
-            \item MS - Skoltech DS (2020)
+            \item бакалавриат -- ЭФ МГУ (2018)
+            \item магистратура - Skoltech DS (2020)
         \end{itemize}
-    \item Core developer at PyMC
-    \item Principle Data Scientist at PyMC Labs
-    \item BayesGroup alumni
-    \item Experience with 
+    \item Один из разработчиков PyMC
+    \item Ведущий дата сайентист в PyMC Labs
+    \item Выпускник BayesGroup
+    \item Имею опыт работы с:
     \begin{itemize}
-        \item Large scale Deep Learning and Computer Vision
-        \item Differential geometry for Graph Neural Networks
-        \item Bayesian Methods for Deep Learning
-        \item Applied Bayesian Statistics for industry (e.g. AB testing, Bio-Informatics)
+        \item машинным обучением и компьютерным зрением;
+        \item дифференциальной геометрией для графовых нейросетей;
+        \item байесовскими методами для глубокого обучения;
+        \item прикладной байесовский статистикой в индустрии (А/Б тестирование, биоинформатика).
     \end{itemize}
 \end{itemize}
 \end{column}
@@ -48,23 +52,23 @@
 \end{column}
 \end{columns}
 \end{frame}
-\section{Formal stuff}
-\begin{frame}{In this course}
-You'll learn...
+\section{Формальности}
+\begin{frame}{В этом курсе}
+Вы узнаете...
 \begin{itemize}
-    \item how to think critically about your model
-    \item tools to check the validity of the results
-    \item how to present your results
-    \item non-parametric models for time series 
+    \item как критически думать о вашей модели;
+    \item какие инструменты использовать для проверки достоверности результатов;
+    \item как презентовать ваши результаты;
+    \item как строить непараметрические модели временных рядов.
 \end{itemize}
 \end{frame}
-\begin{frame}{Grading}
-The grade consists of
+\begin{frame}{Оценки}
+Оценка состоит из:
     \begin{itemize}
-        \item 60\% Homework
-        \item 40\% Group project
+        \item 60\% домашние задания
+        \item 40\% групповой проект
     \end{itemize}
-Grades will be assigned as
+Конвертация баллов в оценку
     \begin{itemize}
         \item 5 - $85\%+$
         \item 4 - $65\%+$
@@ -72,33 +76,33 @@ Grades will be assigned as
         \item 2 - $<40\%$
     \end{itemize}
 \end{frame}
-\section{Motivation}
-\begin{frame}{Why learn Bayesian methods?}
+\section{Мотивация}
+\begin{frame}{Зачем изучать байесовские методы?}
     \begin{itemize}
-        \item Used in advanced research
+        \item Использование в продвинутых исследованиях
         \begin{itemize}
-            \item CBR - \href{https://www.cbr.ru/Content/Document/File/119374/bDSGE.pdf}{Bayesian DSGE (link)}
-            \item Papers using PyMC from google scholar is \href{https://scholar.google.com/scholar?hl=ru&as_sdt=2005&sciodt=0,5&cites=6936955228135731011&scipsc=&q=&scisbd=1}{overwhelming (link)}
+            \item ЦБ РФ - \href{https://www.cbr.ru/Content/Document/File/119374/bDSGE.pdf}{байесовская модель DSGE (ссылка)}
+            \item В Google Scholar \href{https://scholar.google.com/scholar?hl=ru&as_sdt=2005&sciodt=0,5&cites=6936955228135731011&scipsc=&q=&scisbd=1}{очень много (ссылка)} статей, использующих PyMC
         \end{itemize}
 
-        \item Used in top notch industry
+        \item Использование в индустрии
         \begin{itemize}
-            \item \href{https://engineering.hellofresh.com/bayesian-media-mix-modeling-using-pymc3-for-fun-and-profit-2bd4667504e6}{Marketing at Indigo (link)}
-            \item \href{https://pubmed.ncbi.nlm.nih.gov/27442271/}{Drug development at Roche (link)}
-            \item \href{https://github.com/quantopian/bayesalpha}{Portfolio Theory at Quantopian (link)}
-            \item \href{https://support.everysk.com/hc/en-us/articles/1500001040721-Private-Investments}{Financial Advisory at Everysk (link)}
-            \item \href{https://discourse.pymc.io/t/job-opening-director-of-data-science-at-civiqs/1895}{Conducting Surveys at Civiqs (link)}
+            \item \href{https://engineering.hellofresh.com/bayesian-media-mix-modeling-using-pymc3-for-fun-and-profit-2bd4667504e6}{Маркетинг в Indigo (ссылка)}
+            \item \href{https://pubmed.ncbi.nlm.nih.gov/27442271/}{Разработка медикаментов в Roche (ссылка)}
+            \item \href{https://github.com/quantopian/bayesalpha}{Портфельная теория в Quantopian (ссылка)}
+            \item \href{https://support.everysk.com/hc/en-us/articles/1500001040721-Private-Investments}{Финансовые консультации в Everysk (ссылка)}
+            \item \href{https://discourse.pymc.io/t/job-opening-director-of-data-science-at-civiqs/1895}{Проведение опросов в Civiqs (ссылка)}
         \end{itemize}
-        \item Growth opportunity
+        \item Возможности карьерного роста
         \begin{itemize}
-            \item Links many disciplines and career transitions
-            \item Hot non-boring job offerings in industry
-            \item Opens new research possibilities
+            \item Связывают многие дисциплины и карьеры
+            \item Интересные предложения работы в индустрии
+            \item Открывают новые возможности для исследований
         \end{itemize}
     \end{itemize}
 \end{frame}
-\section{Bayesian Probability}
-\begin{frame}{Bayesian Probability}
+\section{Теорема Байеса}
+\begin{frame}{Теорема Байеса}
 
     \center {\Huge $\underbrace{p(\Theta|\gD)}_{\text{\includegraphics[width=2cm]{img/breaking-news}}}
     =\frac{
@@ -106,10 +110,10 @@ Grades will be assigned as
         }{
         p(\gD)
         }$}
-    $$\gD = \text{Data}\qquad \Theta = \text{World State}$$
+    $$\gD = \text{Данные}\qquad \Theta = \text{Состояние мира}$$
 \end{frame}
-\subsection{Prior}
-\begin{frame}{Prior Distribution}
+\subsection{Априорное распределение}
+\begin{frame}{Априорное распределение}
     \center \Huge $\textcolor{gray}{p(\Theta|\gD)
     =}\frac{
         \textcolor{gray}{p(\gD|\Theta)}\overbrace{p(\Theta)}^{\includegraphics[width=2cm]{img/thinker-statue}}
@@ -117,82 +121,82 @@ Grades will be assigned as
         \textcolor{gray}{p(\gD)}
         }$
 \end{frame}
-\begin{frame}{Case Study: Where do priors come from?}
-Authors: Marielle Zondervan-Zwijnenburg, Margot Peeters, Sarah Depaoli, Rens van de Schoot \cite{where-do-priors-come-from}. Bayesian Econometrics example
-\begin{block}{Policy question}
-    Should we increase cannabis control for adolescents?
+\begin{frame}{Кейс: откуда берутся априорные распределения?}
+Авторы: Marielle Zondervan-Zwijnenburg, Margot Peeters, Sarah Depaoli, Rens van de Schoot \cite{where-do-priors-come-from}. Пример из байесовской эконометрики.
+\begin{block}{Исследовательский вопрос}
+    Нужно ли усиливать контроль за потреблением подростками марихуаны?
 \end{block}
 \begin{itemize}
-    \item<+-> Drugs long term influence on brain activity after early onset
-    \item<+-> Few to zero relevant prior research
+    \item<+-> Долгосрочное влияние наркотиков на мозговую активность в случае употребления в раннем возрасте
+    \item<+-> Почти нет существующих исследований по теме %Few to zero relevant prior research
     \begin{itemize}
-        \item no exact match for cannabis case and brain activity
-        \item additional developing diseases 
+        \item нет исследований именно о связи употребления марихуаны и мозговой активности %no exact match for cannabis case and brain activity
+        \item развитие сопутствующих заболеваний %additional developing diseases
     \end{itemize}
-    \item<+-> Scarce, hard to obtain data
-    \item<+-> Classical econometrics fails (16 data points in the
-    group)
-    \item<+-> Expert knowledge feels important
-    \item<+-> Statistics is required for an informed decision
+    \item<+-> Нехватка данных %Scarce, hard to obtain data
+    \item<+-> Классическая эконометрика не работает (16 наблюдений в группе) %Classical econometrics fails (16 data points in the group)
+    \item<+-> Хорошо бы учесть мнение экспертов %Expert knowledge feels important
+    \item<+-> Для принятия информированного решения необходимы статистические методы %Statistics is required for an informed decision
 \end{itemize}
 \end{frame}
-\begin{frame}{The Game}
+\begin{frame}{Игра}
     \begin{figure}
         \centering
         \includegraphics[width=\linewidth]{img/sopt}
-        \caption{Sample picture from self ordered pointing test}
+        \caption{Пример изображения из теста}
         \label{fig:my_label}
     \end{figure}
 \end{frame}
-\begin{frame}{Quick intro}
-Measuring the existence and severity of cannabis usage
+\begin{frame}{Кратко о статье}
+Измерение наличия и степени употребления марихуаны %Measuring the existence and severity of cannabis usage
     \begin{itemize}
-        \item You can measure brain development with a Game ( Self Ordered Pointing Test \cite{sopt})
-        \item Cannabis use is checked for participants
-        \item Adolescents pass the Game 2 times a year
-        \item The results are compared between the \textbf{heavy} and \textbf{light} cannabis users
+        \item Развитие мозга можно измерить с помощью игры%You can measure brain development with a Game
+        (Self Ordered Pointing Test \cite{sopt})
+        \item Участники проверяются на потребление марихуаны %Cannabis use is checked for participants
+        \item Подростки проходят игру 2 раза в год %Adolescents pass the Game 2 times a year
+        \item Результаты сравниваются между людьми, употребляющими каннабис \textbf{часто} и \textbf{редко} %The results are compared between the \textbf{heavy} and \textbf{light} cannabis users
     \end{itemize}
-\begin{block}{Leftover questions}
+\begin{block}{Оставшиеся вопросы}
 \begin{itemize}
-    \item How does the amount of cannabis used affects the brain development?
-    \item What age is sufficient to minimize the effect of usage?
-    \item What policy should be used to minimize the effect?
+    \item Как объём употреблённой марихуаны влияет на развитие мозга? %How does the amount of cannabis used affects the brain development?
+    \item Люди какого возраста менее подвержены отрицательным эффектам? %What age is sufficient to minimize the effect of usage?
+    \item Какой политики следует придерживаться для минимизации отрицательных эффектов?%What policy should be used to minimize the effect?
 \end{itemize}        
 \end{block}
 
 \end{frame}
 
-\begin{frame}{Case Study: Prior Distribution}
+\begin{frame}{Кейс: априорное распределение}
 \begin{columns}
 \begin{column}{0.8\linewidth}
-To develop a prior researchers combined many sources of information
+Для разработки априорного распределения исследователи совместили много источников  информации%To develop a prior researchers combined many sources of information
     \begin{enumerate}
-        \item Knowledge before seeing any data
+        \item Знания имевшиеся до сбора данных %Knowledge before seeing any data
         \visible<2->{
         \begin{itemize}
-            \item Practical range for SOPT measure and growth rates
+            \item Практический диапазон для метрики SOPT и темпов роста%Practical range for SOPT measure and growth rates
         \end{itemize}}
-        \item Prior research results
+        \item Результаты прошлых исследований:%Prior research results
         \visible<3->{
         \begin{itemize}
-            \item effect size of cannabis use was mixed with other diseases or had missing information
-            \item "13 out of 693 articles yielded useful information"
+            \item размер эффекта от употребления марихуаны был смешан с другими заболеваниями, или о нём не было данных %effect size of cannabis use was mixed with other diseases or had missing information
+            \item "в 13 из 693 статей была полезная информация"%"13 out of 693 articles yielded useful information"
         \end{itemize}}
-        \item Expert knowledge
+        \item Экспертнон мнение%Expert knowledge
         \visible<4->{
         \begin{itemize}
-            \item Prior research was reviewed by experts
-            \item Relation of diseases and behaviour to cannabis use
+            \item Прошлые исследования были изучены исследователями %Prior research was reviewed by experts
+            \item Связь заболеваний и поведения с употреблением марихуаны %Relation of diseases and behaviour to cannabis use
         \end{itemize}}
-        \item Constraints
+        \item Ограничения %Constraints
         \visible<5->{
         \begin{itemize}
-            \item Slope (SOPT development rate) is more positive than negative
+            \item Наклон SOPT development rate скорее положительный, чем отрицательный %Slope (SOPT development rate) is more positive than negative
         \end{itemize}}
-        \item Model properties
+        \item Свойства модели %Model properties
         \visible<6->{
         \begin{itemize}
-            \item Sign of the quadratic term
+            \item Знак квадратичного члена %Sign of the quadratic term
         \end{itemize}}
     \end{enumerate}
 \end{column}
@@ -203,40 +207,40 @@ To develop a prior researchers combined many sources of information
 \end{column}
 \end{columns}
 \end{frame}
-\begin{frame}{Results}
+\begin{frame}{Результаты}
     \begin{figure}
         \centering
         \includegraphics[width=0.8\linewidth]{img/sopt-reprodusing}
     \end{figure}
 \end{frame}
 
-\begin{frame}{Common Issues}
-In the research the prior was defended
+\begin{frame}{Частые проблемы}
+Авторы исследования обосновали выбор априорного распределения %In the research the prior was defended
 \begin{enumerate}
-    \item Prior is subjective
+    \item Априорное распределение субьективно %Prior is subjective
     \visible<2->{
     \begin{itemize}
-        \item Informed prior was compared to uninformed one
+        \item Сравнение информированного априорного распределения с неинформированным %Informed prior was compared to uninformed one
     \end{itemize}
     }
-    \item Prior specification is unclear
+    \item Спецификация априорного распределения непонятна %Prior specification is unclear
     \visible<3->{
     \begin{itemize}
-        \item The log book was provided with a full description of the choice
-        \item \url{https://osf.io/aw8fy/}
+        \item Принципы выбора априорного распределения описаны в разделе Logbook: \url{https://osf.io/aw8fy/} %The log book was provided with a full description of the choice
+        %\item \url{https://osf.io/aw8fy/}
     \end{itemize}
     }
-    \item Prior is incorrectly specified
+    \item Априорное распределение неверно специфицировано%Prior is incorrectly specified
     \visible<4->{
     \begin{itemize}
-        \item There are still some issues with the analysis but it is out of the scope
+        \item Анализ небезупречен, но это выходит за рамки лекции%There are still some issues with the analysis but it is out of the scope
     \end{itemize}
     }
 \end{enumerate}
 
 \end{frame}
-\subsection{Likelihood}
-\begin{frame}{Likelihood Distribution}
+\subsection{Правдоподобие}
+\begin{frame}{Правдоподобие}
     \center \Huge $\textcolor{gray}{p(\Theta|\gD)
     =}\frac{
         \overbrace{p(\gD|\Theta)}^{\text{\includegraphics[width=2cm]{img/fact-label}}}{p(\Theta)}
@@ -245,32 +249,33 @@ In the research the prior was defended
         }$
 \end{frame}
 
-\begin{frame}{Case Study: AB Test}
+\begin{frame}{Кейс: А/Б тест}
 \begin{columns}
     \begin{column}{0.5\linewidth}
-        You sell nuts. You want sell more nuts!
-        How to increase sales?
+        Вы продаёте орехи. Вы хотите продать больше орехов!
+        Как увеличить объёмы продаж?
         \begin{itemize}
-            \item increase purchase probability
+            \item увеличить вероятность покупки%increase purchase probability
             \visible<2->{
             \begin{itemize}
-                \item Create a banner about healthy food
-                \item Add a banner with recipes
-                \item Improve the layout
+                \item Сделать баннер о здоровой еде%Create a banner about healthy food
+                \item Добавить баннер с рецептами%Add a banner with recipes
+                \item Улучшить макет сайта%Improve the layout
             \end{itemize}
             }
-            \item increase order size
+            \item увеличить размер заказа%increase order size
             \visible<3->{
             \begin{itemize}
-                \item Lower the price
-                \item Increase quality
-                \item Make better packaging
+                \item Снизить цену%Lower the price
+                \item Повысить качество%Increase quality
+                \item Улучшить упаковку%Make better packaging
             \end{itemize}
             }
         \end{itemize}
     \visible<4->{
-        \begin{block}{What is better?}
-            AB testing can answer the question
+        \begin{block}{Что лучше?}
+            А/Б тестирование может ответить на этот вопрос
+            %AB testing can answer the question
         \end{block}
     }
     \end{column}
@@ -284,7 +289,7 @@ In the research the prior was defended
     \end{column}
 \end{columns}
 \end{frame}
-\begin{frame}{Not all customers buy nuts}
+\begin{frame}{Не все потребители покупают орехи}
 \begin{figure}
     \centering
     \foreach \n in {1,...,6}{%
@@ -295,20 +300,22 @@ In the research the prior was defended
 \includegraphics[width=0.049\linewidth]{img/chek}\hspace{0.001\linewidth}%
 \end{figure}
 \begin{itemize}
-    \item A significant portion of data are just zeros
-    \item A classical 2 sample t-test assumes normality, not our case
-    \item Researchers admit t-test weaknesses in these cases \cite{when-t-test-fails}
+    \item Значительная часть данных -- просто нули%A significant portion of data are just zeros
+    \item Классический t-тест для 2-х выборок предполагает нормальное распределение, это не наш случай%A classical 2 sample t-test assumes normality, not our case
+    \item Исследователи признают недостатки t-теста в таких случаях%Researchers admit t-test weaknesses in these cases
+    \cite{when-t-test-fails}
 \end{itemize}
 \pause
-\begin{block}{Solution}
-    Think of a non-normal likelihood
+\begin{block}{Решение}
+    Придумаем правдоподобие, не основанное на нормальном распределении%Think of a non-normal likelihood
 \end{block}
 \end{frame}
 \begin{frame}{Zero inflation}
 \begin{columns}
 \begin{column}{0.7\linewidth}
-\begin{block}{Zero Inflation}
-        Data property, when a significant portion of data is exactly zero
+\begin{block}{Zero Inflation (избыток нулей)}
+    Значительная доля наблюдений в точности равна нулю
+        %Data property, when a significant portion of data is exactly zero
     \end{block}
 
 \end{column}
@@ -317,23 +324,22 @@ In the research the prior was defended
 \end{column}
 \end{columns}
     
-    Examples:
+    Примеры:%Examples:
     \begin{itemize}
-        \item Wait times in a queue (no queue is zero)
-        \item Defects on a production line (no defects is zero)
-        \item Rain water level (sunny weather is 0 water level)
-        \item Purchase order statement (no nuts is zero)
+        \item Время ожидания в очереди (нет очереди -- ноль)%Wait times in a queue (no queue is zero)
+        \item Дефекты на производстве (нет дефектов -- ноль)%Defects on a production line (no defects is zero)
+        \item Уровень осадков (нет осадков -- ноль)%Rain water level (sunny weather is 0 water level)
+        \item Покупки (нет орехов -- ноль)%Purchase order statement (no nuts is zero)
     \end{itemize}
 \end{frame}
-\begin{frame}{Zero Inflated Distribution}
-    \begin{block}{Wisdom}
-        Any distribution can be made zero inflated
+\begin{frame}{Zero Inflated распределения}
+    \begin{block}{Мудрость}
+        В любом распределении можно повысить вероятность возникновения нулей
+        %Any distribution can be made zero inflated
     \end{block}
-    \textbf{Example:} Zero Inflated Gamma.
+    \textbf{Пример:} Zero Inflated Gamma. Параметры $\alpha, \beta$ гамма распределения и $p$ - вероятность ненулевого наблюдения
     
-    We'll have parameters $\alpha, \beta$ (from Gamma) and $p$ - probability of non-zero
-    
-    \textbf{Sampling:}
+    \textbf{Сэмплирование:}
     \begin{align*}
         z &\sim \operatorname{Bernoulli}(p)\\
         sample &\sim \begin{cases}
@@ -342,7 +348,7 @@ In the research the prior was defended
         \end{cases}
     \end{align*}
     \pause
-    \textbf{Log Probability Density Function}
+    \textbf{Логарифм плотности}
     \begin{equation*}
         \log p(x\cond p, \alpha, \beta) = \begin{cases}
         \log(1-p) &,x=0\\
@@ -351,26 +357,26 @@ In the research the prior was defended
         \end{cases}
     \end{equation*}
 \end{frame}
-\begin{frame}{Zero inflation as a mixture}
-    \begin{block}{Wisdom}
-        Zero inflation is a special case of a Mixture
+\begin{frame}{Zero inflation как смесь}
+    \begin{block}{Мудрость}
+        Zero inflated распределения -- разновидность смешанных распределений
     \end{block}
-    Components:
+    Компоненты смеси:
     \begin{enumerate}
         \item $\operatorname{Constant}(0)$
         \item $\operatorname{Gamma}(\alpha, \beta)$
     \end{enumerate}
-    Mixture probability is $p$
+    Параметр "смешанности" $p$ (здесь -- доля гамма распределения)
     \begin{equation*}
         \operatorname{ZI-Gamma}(p, \alpha, \beta) \equiv \operatorname{Mixture}([1-p, p], [\operatorname{Constant}(0), \operatorname{Gamma}(\alpha, \beta)])
     \end{equation*}
 \end{frame}
-\begin{frame}{Back to the example}
+\begin{frame}{Вернёмся к примеру}
     \begin{align*}
-        \text{make an order} &\sim \operatorname{Bernoulli}(p) \\
-        \text{order amount} &\sim \begin{cases}
-        \operatorname{Gamma}(\alpha, \beta)&, \text{make an order} = 1\\
-        0&, \text{make an order} =0
+        \text{заказ сделан} &\sim \operatorname{Bernoulli}(p) \\
+        \text{размер заказа} &\sim \begin{cases}
+        \operatorname{Gamma}(\alpha, \beta)&, \text{заказ сделан} = 1\\
+        0&, \text{заказ сделан} =0
         \end{cases}
     \end{align*}
 \begin{columns}
@@ -384,14 +390,14 @@ In the research the prior was defended
 \end{column}
 \end{columns}
 \end{frame}
-\begin{frame}{Takeouts}
+\begin{frame}{Выводы}
     \begin{itemize}
-        \item Good likelihood helps to get better sense of the problem
+        \item Хорошее правдоподобие помогает лучше понять проблему%Good likelihood helps to get better sense of the problem
         \begin{itemize}
-            \item split purchase probability and purchase amount
-            \item more possibilities over a classical t-test
+            \item разделили вероятность покупки и размер заказа%split purchase probability and purchase amount
+            \item больше возможностей по сравнению с классическим t-тестом%more possibilities over a classical t-test
         \end{itemize}
-        \item Understanding a problem is a first step to a good likelihood
+        \item Понимание проблемы -- первый шаг к хорошему правдоподобию%Understanding a problem is a first step to a good likelihood
     \end{itemize}
 \end{frame}
 % \begin{frame}{How AB test is connected to likelihood?}
@@ -419,8 +425,8 @@ In the research the prior was defended
 %         Classical approach limits us in applications (likelihood choice)
 %     \end{block}
 % \end{frame}
-\subsection{Posterior}
-\begin{frame}{Posterior Distribution}
+\subsection{Апостериорное распределение}
+\begin{frame}{Апостериорное распределение}
 \center \Huge $\underbrace{p(\Theta|\gD)}_{\text{\includegraphics[width=2cm]{img/breaking-news}}}
     =\frac{
         \textcolor{gray}{p(\gD|\Theta)p(\Theta)}
@@ -428,12 +434,12 @@ In the research the prior was defended
         \textcolor{gray}{p(\gD)}
         }$
 \end{frame}
-\begin{frame}{Posterior Distribution}
+\begin{frame}{Апостериорное распределение}
 \begin{columns}
 \begin{column}{0.75\linewidth}
 \begin{align*}
-&p(\text{what you think}|\text{data})\\
-\propto &p(\text{data} |\text{what you think})p(\text{what you think})
+&p(\text{что вы думаете}|\text{данные})\\
+\propto &p(\text{данные} |\text{что вы думаете})p(\text{что вы думаете})
 \end{align*}
 \end{column}
 \begin{column}{0.25\linewidth}
@@ -441,7 +447,7 @@ In the research the prior was defended
 \end{column}
 \end{columns}
 \end{frame}
-\begin{frame}{Case Study: Marketing}
+\begin{frame}{Кейс: маркетинг}
     \begin{figure}
     \centering
     \includegraphics[height=1cm]{img/dollar}\includegraphics[height=1cm]{img/dollar}\includegraphics[height=1cm]{img/dollar}\\
@@ -454,18 +460,18 @@ In the research the prior was defended
         \includegraphics[height=2.5cm]{img/MMM-logo}
     \end{figure}
 \begin{block}{\textbf{M}edia \textbf{M}ix \textbf{M}odel}
-    MMM - helps to evaluate marketing channels from historical data
+    MMM -- помогает оценивать маркетинговые каналы по историческим данным %helps to evaluate marketing channels from historical data
 \end{block}
 \end{frame}
-\begin{frame}{Uncertainty}
+\begin{frame}{Неопределённость}
 \begin{columns}
 \begin{column}{0.5\linewidth}
-Media Mix Models (\href{https://engineering.hellofresh.com/bayesian-media-mix-modeling-using-pymc3-for-fun-and-profit-2bd4667504e6}{read more here})
+Media Mix Models (\href{https://engineering.hellofresh.com/bayesian-media-mix-modeling-using-pymc3-for-fun-and-profit-2bd4667504e6}{подробнее здесь})
     \begin{itemize}
-        \item How valuable is additional \$1000 invested in VK? Or Facebook?
-        \item How certain is the model estimation?
-        \item High value, high uncertainty or low value low uncertainty?
-        \item How to allocate money?
+        \item Насколько ценны дополнительные инвестиции в \$1000 для ВК? или Яндекса?%How valuable is additional \$1000 invested in VK? Or Facebook?
+        \item Насколько велика неопределённость оценок?%How certain is the model estimation?
+        \item Большая ценность, но большая неопределённость, или небольшая ценность  небольшая неопределённость?%High value, high uncertainty or low value low uncertainty?
+        \item На что выделить деньги?%How to allocate money?
     \end{itemize}
 \end{column}
 \begin{column}{0.5\linewidth}
@@ -473,21 +479,22 @@ Media Mix Models (\href{https://engineering.hellofresh.com/bayesian-media-mix-mo
 \end{column}
 \end{columns}
 \visible<2>{
-\begin{block}{Takeout}
-Uncertainty helps to make more informed decision
+\begin{block}{Вывод}
+Оценка неопределённости помогает принять более информированные решения
+%Uncertainty helps to make more informed decision
 \end{block}
 }
 \end{frame}
-\begin{frame}{Recap}
-    In Bayesian framework you have:
+\begin{frame}{Резюме}
+    Байесовский фреймворк состоит из:%In Bayesian framework you have:
     \begin{itemize}
-        \item Prior = What I think the problem is
-        \item Likelihood = What the facts I have
-        \item Posterior = What the problem actually is \textit{given priors and data}
+        \item априорного распределения (что мы изначально думаем о параметрах)%Prior = What I think the problem is
+        \item правдоподобия (имеющиеся факты)%Likelihood = What the facts I have
+        \item апостериорного распределения (представление о параметрах, обновлённое \textit{на основе априорного распределения и данных})%Posterior = What the problem actually is \textit{given priors and data}
     \end{itemize}
 \end{frame}
-\section{Model}
-\begin{frame}{The Model}
+\section{Модель}
+\begin{frame}{Модель}
     \center
     { \Huge $p_\gM(\Theta|\gD)
     =\frac{
@@ -497,19 +504,20 @@ Uncertainty helps to make more informed decision
         }$}
 \vfill
 \begin{block}{}
-Treat the model as a "one of many" descriptions of the problem.
+Модель -- "одно из многих" описаний задачи.
+%Treat the model as a "one of many" descriptions of the problem.
 \end{block}
 \end{frame}
-\begin{frame}{Bias - Variance trade-off}
+\begin{frame}{Дилемма смещения-дисперсии}
 \begin{columns}
 \begin{column}{0.4\linewidth}
-Getting to a good model
+Как получить хорошую модель%Getting to a good model
 \begin{enumerate}
-    \item Start with a over-simplified model
-    \item Make sure it samples well
-    \item Increase the complexity
+    \item Начните с заведомо простой модели%Start with a over-simplified model
+    \item Сделайте так, чтобы она хорошо сэмплировалась%Make sure it samples well
+    \item Усложните  модель%Increase the complexity
     \item ...
-    \item Choose the best model using cross validation
+    \item Выберите наилучшую модель, используя кросс-валидацию%Choose the best model using cross validation
 \end{enumerate}
 \end{column}
 \begin{column}{0.6\linewidth}
@@ -517,22 +525,23 @@ Getting to a good model
 \end{column}
 \end{columns}
 \visible<2->{
-\begin{block}{Common mistake}
-Starting with a complicated model make debugging painful
+\begin{block}{Частая ошибка}
+Если начать со сложной модели, её будет сложно отлаживать
+%Starting with a complicated model make debugging painful
 \end{block}
 }
 \end{frame}
-\begin{frame}{Case Study: generalized additive models}
+\begin{frame}{Кейс: обобщённые аддитивные модели}
 \begin{equation*}
-    y(t)= \underbrace{g(t)}_{\text{trend}} + \underbrace{s(t)}_{\text{seasonality}} + \underbrace{r(X_t)}_{\text{regressors}} + \varepsilon_t
+    y(t)= \underbrace{g(t)}_{\text{тренд}} + \underbrace{s(t)}_{\text{сезонность}} + \underbrace{r(X_t)}_{\text{регрессоры}} + \varepsilon_t
 \end{equation*}
 \begin{columns}
 \begin{column}{0.5\linewidth}
-Adding more and more complexity
+Усложнение модели%Adding more and more complexity
 \begin{enumerate}
-    \item start with a simple trend model
-    \item add seasonality
-    \item add fine seasonality details, holidays or other features
+    \item начнём с простой модели тренда%start with a simple trend model
+    \item добавим сезонность%add seasonality
+    \item детализируем сезонность, добавим выходные дни или другие признаки%add fine seasonality details, holidays or other features
 \end{enumerate}
 \end{column}
 \begin{column}{0.5\linewidth}
@@ -540,42 +549,43 @@ Adding more and more complexity
 \end{column}
 \end{columns}
 \end{frame}
-\section{Discussion}
-\begin{frame}{When Bayes?}
-Bayesian modeling does not fit all the use cases at once
+\section{Обсуждение}
+\begin{frame}{Когда использовать байесовские методы?}
+Байесовские методы не подходят для всех случаев одновременно%Bayesian modeling does not fit all the use cases at once
 \begin{itemize}
-    \item It requires extra skills compared to classical machine learning
-    \item You might not need the extra "uncertainty"
+    \item Они требуют дополнитеьлных навыков по сравнению с классическим машинным обучением%It requires extra skills compared to classical machine learning
+    \item Вам могут не понадобиться оценки неопределённости%You might not need the extra "uncertainty"
 \end{itemize}
 \pause
-\begin{block}{Proposition}
-    Bayesian modeling starts when fit-predict is useless
+\begin{block}{Утверждение}
+    Байесовские модели начинаются там, где заканчивается парадигма fit-predict%Bayesian modeling starts when fit-predict is useless
 \end{block}
 
 \pause
 \begin{itemize}
-    \item You have interpretable confidence intervals
-    \item You have flexibility and control over the model
-    \item You have reliable low data applications
+    \item Байес даёт интерпретируемые "доверительные интервалы"%You have interpretable confidence intervals
+    \item Байес даёт гибкость и контроль над моделью%You have flexibility and control over the model
+    \item Байес надёжен при недостатке данных%You have reliable low data applications
 \end{itemize}
-\begin{alertblock}{It comes with a price...}
-You ultimately HAVE to understand the model
+\begin{alertblock}{Но  у всего есть своя цена...}
+Вы ДОЛЖНЫ понимать свою модель
+%You ultimately HAVE to understand the model
 \end{alertblock}
 \end{frame}
-\section{Supplementary}
-\subsection{Programming}
+\section{Дополнительные материалы}
+\subsection{Программирование}
 \begin{frame}{PyMC}
 \begin{columns}
 \begin{column}{0.7\linewidth}
 \begin{enumerate}
-    \item Pure Python!
-    \item Automated inference
-    \item No complicated formulas for MCMC!
-    \item Visualizations with ArviZ
-    \item Reproducible research
-    \item Used in industry applications
-    \item Huge community
-    \item Active development
+    \item Чистый Python!
+    \item Автоматический статистический вывод%Automated inference
+    \item Без сложных формул для MCMC!
+    \item Визуализации с ArviZ
+    \item Воспроизводимые исследования%Reproducible research
+    \item Используется в индустрии%Used in industry applications
+    \item Огромное сообщество%Huge community
+    \item Активно разрабатывается%Active development
 \end{enumerate}
 \url{https://github.com/pymc-devs/pymc}
 \end{column}
@@ -587,7 +597,7 @@ You ultimately HAVE to understand the model
 \end{columns}
 \end{frame}
 \begin{frame}[allowframebreaks]
-\frametitle{References}
+\frametitle{Библиография}
 \bibliographystyle{abbrv}
 \bibliography{references.bib}
 \end{frame}
