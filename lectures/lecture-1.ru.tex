@@ -26,10 +26,10 @@
 \begin{columns}
 \begin{column}{0.75\linewidth}
 \begin{itemize}
-    \item Выпускник
+    \item Образование:
         \begin{itemize}
             \item бакалавриат -- ЭФ МГУ (2018)
-            \item магистратура - Skoltech DS (2020)
+            \item магистратура -- Skoltech DS (2020)
         \end{itemize}
     \item Один из разработчиков PyMC
     \item Ведущий дата сайентист в PyMC Labs
@@ -136,7 +136,7 @@
     \item<+-> Нехватка данных %Scarce, hard to obtain data
     \item<+-> Классическая эконометрика не работает (16 наблюдений в группе) %Classical econometrics fails (16 data points in the group)
     \item<+-> Хорошо бы учесть мнение экспертов %Expert knowledge feels important
-    \item<+-> Для принятия информированного решения необходимы статистические методы %Statistics is required for an informed decision
+    \item<+-> Необходимы статистические методы %Statistics is required for an informed decision
 \end{itemize}
 \end{frame}
 \begin{frame}{Игра}
@@ -148,13 +148,13 @@
     \end{figure}
 \end{frame}
 \begin{frame}{Кратко о статье}
-Измерение наличия и степени употребления марихуаны %Measuring the existence and severity of cannabis usage
+Измерение объёма потребления марихуаны %Measuring the existence and severity of cannabis usage
     \begin{itemize}
-        \item Развитие мозга можно измерить с помощью игры%You can measure brain development with a Game
+        \item Развитие мозга можно измерить с помощью игры %You can measure brain development with a Game
         (Self Ordered Pointing Test \cite{sopt})
         \item Участники проверяются на потребление марихуаны %Cannabis use is checked for participants
         \item Подростки проходят игру 2 раза в год %Adolescents pass the Game 2 times a year
-        \item Результаты сравниваются между людьми, употребляющими каннабис \textbf{часто} и \textbf{редко} %The results are compared between the \textbf{heavy} and \textbf{light} cannabis users
+        \item Результаты сравниваются между людьми, употребляющими марихуану \textbf{часто} и \textbf{редко} %The results are compared between the \textbf{heavy} and \textbf{light} cannabis users
     \end{itemize}
 \begin{block}{Оставшиеся вопросы}
 \begin{itemize}
@@ -169,35 +169,34 @@
 \begin{frame}{Кейс: априорное распределение}
 \begin{columns}
 \begin{column}{0.8\linewidth}
-Для разработки априорного распределения исследователи совместили много источников  информации%To develop a prior researchers combined many sources of information
+Объединение разных источников информации для получения априорного распределения%To develop a prior researchers combined many sources of information
     \begin{enumerate}
-        \item Знания имевшиеся до сбора данных %Knowledge before seeing any data
+        \item Знания, имевшиеся до сбора данных %Knowledge before seeing any data
         \visible<2->{
         \begin{itemize}
-            \item Практический диапазон для метрики SOPT и темпов роста%Practical range for SOPT measure and growth rates
+            \item Практический диапазон метрики SOPT и темпов роста%Practical range for SOPT measure and growth rates
         \end{itemize}}
         \item Результаты прошлых исследований:%Prior research results
         \visible<3->{
         \begin{itemize}
-            \item размер эффекта от употребления марихуаны был смешан с другими заболеваниями, или о нём не было данных %effect size of cannabis use was mixed with other diseases or had missing information
-            \item "в 13 из 693 статей была полезная информация"%"13 out of 693 articles yielded useful information"
+            \item эффект от употребления марихуаны смешан с другими заболеваниями, или о нём нет данных %effect size of cannabis use was mixed with other diseases or had missing information
+            \item "полезная информация была в 13 из 693 статей"%"13 out of 693 articles yielded useful information"
         \end{itemize}}
-        \item Экспертнон мнение%Expert knowledge
+        \item Экспертное мнение%Expert knowledge
         \visible<4->{
         \begin{itemize}
-            \item Прошлые исследования были изучены исследователями %Prior research was reviewed by experts
-            \item Связь заболеваний и поведения с употреблением марихуаны %Relation of diseases and behaviour to cannabis use
+            \item Эксперты изучили прошлые исследования %Prior research was reviewed by experts
+            \item Связь заболеваний с употреблением марихуаны %Relation of diseases and behaviour to cannabis use
         \end{itemize}}
         \item Ограничения %Constraints
         \visible<5->{
         \begin{itemize}
-            \item Наклон SOPT development rate скорее положительный, чем отрицательный %Slope (SOPT development rate) is more positive than negative
+            \item Наклон SOPT скорее положительный, чем отрицательный %Slope (SOPT development rate) is more positive than negative
         \end{itemize}}
-        \item Свойства модели %Model properties
-        \visible<6->{
-        \begin{itemize}
-            \item Знак квадратичного члена %Sign of the quadratic term
-        \end{itemize}}
+        %Model properties %иначе не поместится на слайде
+        \item Свойства модели:\visible<6->{
+        Знак квадратичного члена %Sign of the quadratic term
+        }
     \end{enumerate}
 \end{column}
 \begin{column}{0.2\linewidth}
@@ -230,7 +229,7 @@
         %\item \url{https://osf.io/aw8fy/}
     \end{itemize}
     }
-    \item Априорное распределение неверно специфицировано%Prior is incorrectly specified
+    \item Неверная спецификация априорного распределения%Prior is incorrectly specified
     \visible<4->{
     \begin{itemize}
         \item Анализ небезупречен, но это выходит за рамки лекции%There are still some issues with the analysis but it is out of the scope
@@ -252,18 +251,18 @@
 \begin{frame}{Кейс: А/Б тест}
 \begin{columns}
     \begin{column}{0.5\linewidth}
-        Вы продаёте орехи. Вы хотите продать больше орехов!
+        Вы продаёте орехи и хотите продать больше орехов.
         Как увеличить объёмы продаж?
         \begin{itemize}
-            \item увеличить вероятность покупки%increase purchase probability
+            \item Увеличить вероятность покупки:%increase purchase probability
             \visible<2->{
             \begin{itemize}
-                \item Сделать баннер о здоровой еде%Create a banner about healthy food
-                \item Добавить баннер с рецептами%Add a banner with recipes
+                \item Баннер о здоровой еде%Create a banner about healthy food
+                \item Баннер с рецептами%Add a banner with recipes
                 \item Улучшить макет сайта%Improve the layout
             \end{itemize}
             }
-            \item увеличить размер заказа%increase order size
+            \item Увеличить размер заказа%increase order size
             \visible<3->{
             \begin{itemize}
                 \item Снизить цену%Lower the price
@@ -337,23 +336,23 @@
         В любом распределении можно повысить вероятность возникновения нулей
         %Any distribution can be made zero inflated
     \end{block}
-    \textbf{Пример:} Zero Inflated Gamma. Параметры $\alpha, \beta$ гамма распределения и $p$ - вероятность ненулевого наблюдения
+    \textbf{Пример:} Zero Inflated Gamma. Параметры $\alpha, \beta$ гамма распределения и $p$ -- вероятность ненулевого наблюдения
     
     \textbf{Сэмплирование:}
     \begin{align*}
         z &\sim \operatorname{Bernoulli}(p)\\
         sample &\sim \begin{cases}
-        \operatorname{Gamma}(\alpha, \beta)&, z = 1\\
-        0&, z =0
+        \operatorname{Gamma}(\alpha, \beta), &z = 1\\
+        0, &z = 0
         \end{cases}
     \end{align*}
     \pause
     \textbf{Логарифм плотности}
     \begin{equation*}
         \log p(x\cond p, \alpha, \beta) = \begin{cases}
-        \log(1-p) &,x=0\\
-        \log(p) + \alert<3->{\frac {x^{\alpha -1}e^{-\beta x}\beta ^{\alpha }}{\Gamma (\alpha )}}
-        &,x> 0
+        \log(1-p), &x=0\\
+        \log(p) + \alert<3->{\frac {x^{\alpha -1}e^{-\beta x}\beta ^{\alpha }}{\Gamma (\alpha )}},
+        &x > 0
         \end{cases}
     \end{equation*}
 \end{frame}
@@ -375,8 +374,8 @@
     \begin{align*}
         \text{заказ сделан} &\sim \operatorname{Bernoulli}(p) \\
         \text{размер заказа} &\sim \begin{cases}
-        \operatorname{Gamma}(\alpha, \beta)&, \text{заказ сделан} = 1\\
-        0&, \text{заказ сделан} =0
+        \operatorname{Gamma}(\alpha, \beta), &\text{заказ сделан} = 1\\
+        0, &\text{заказ сделан} = 0
         \end{cases}
     \end{align*}
 \begin{columns}
@@ -504,7 +503,7 @@ Media Mix Models (\href{https://engineering.hellofresh.com/bayesian-media-mix-mo
         }$}
 \vfill
 \begin{block}{}
-Модель -- "одно из многих" описаний задачи.
+Модель -- одно из многих описаний задачи.
 %Treat the model as a "one of many" descriptions of the problem.
 \end{block}
 \end{frame}
