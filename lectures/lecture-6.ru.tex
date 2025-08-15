@@ -1,0 +1,605 @@
+\documentclass{beamer}
+\usepackage{ferres}
+\usepackage{caption}
+\usepackage{subcaption}
+\framelogo{img/msu-logo}
+\usepackage[OT2,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian,english]{babel}
+\usepackage{hyperref}
+
+%math
+\input{math_commands.tex}
+\author{Максим Кочуров}
+\title[Прикладные байесовские методы]{Байесовская линейная регрессия}
+\institute[МГУ]{МГУ им. М.В. Ломоносова}
+\date{Лекция 6}
+\usepackage{caption} % Кастомные названия объектов
+\captionsetup[figure]{name=Рис.} %тут можно вписать много опций, но я оставил только касающуюся вопроса
+
+
+\begin{document}
+\begin{frame}
+	\maketitle
+\end{frame}
+
+\begin{frame}{Содержание}
+\tableofcontents
+\end{frame}
+\section{Байесовская интуиция}
+\subsection{Эконометрика}
+\begin{frame}{Почему линейная регрессия – это база}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            \begin{itemize}
+                \item Применяется при принятии решений
+                \begin{itemize}
+                    \item Корреляция
+                    \item Направление влияния
+                    \item Оценка эффектов
+                \end{itemize}
+                \item Основа более сложных моделей
+                \begin{itemize}
+                    \item Marketing Mix Models
+                    \item AB тесты
+                \end{itemize}
+            \end{itemize}
+        \begin{block}{Lego}
+            Линейная регрессия -- основа многих статистических методов
+        \end{block}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=\linewidth]{img/linear-regression-meme.png}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+\subsection{Общий случай}
+\begin{frame}{Вводим обозначения}
+В эконометрике общеприняты следующие обозначения
+    \begin{align*}
+        y \sim x_1 + x_2 + \dots + x_k
+    \end{align*}
+\begin{block}{Как читаем}
+    Переменная $y$ линейно зависит от $x_1$, $x_2$, ..., $x_k$
+\end{block}
+\pause
+Также предполагаем (если не оговорено иное) наличие константы 
+    \begin{align*}
+        y \sim \alert<2>{1} + x_1 + x_2 + \dots + x_k
+    \end{align*}
+\pause
+Основная задача -- оценка вектора коэффициентов $\beta$
+    \begin{align*}
+        y \sim \alert<3>{\beta_0} + \alert<3>{\beta_1}x_1 + \alert<3>{\beta_2}x_2 + \dots + \alert<3>{\beta_k}x_k
+    \end{align*}
+\end{frame}
+\begin{frame}{Нелинейные случаи}
+$\%$ изменение в $x_1$ приводит к $\%$ изменению $y$
+    \begin{align*}
+        \log y \sim \log x_1 + \dots
+    \end{align*}
+\pause
+$\%$ изменение в $x_1$ изменяет $y$ на у.е.
+    \begin{align*}
+        y \sim \log x_1 + \dots
+    \end{align*}
+\pause
+изменение $x_1$ на у.е. приводит к $\%$ изменению в $y$
+    \begin{align*}
+       \log y \sim x_1 + \dots
+    \end{align*}
+\pause
+\begin{block}{Вывод}
+    Интерпретация требует аккуратности в случае нелинейных связей
+\end{block}
+\end{frame}
+\subsection{Обобщенные линейные модели}
+\begin{frame}{Обобщенные линейные модели: основы}
+    \textbf{Связать} наблюдения можно с помощью произвольной функцией правдоподобия. Классический пример
+    \begin{align*}
+        c_i &\sim \operatorname{Binom}(p_i, n_i)\\
+        \operatorname{link}^{-1} (p_i) &\sim x_{1i} + x_{2i} + \dots + x_{ki}\\
+    \end{align*}
+\end{frame}
+\begin{frame}{Гетероскедастичность}
+    Добавим немного гибкости в модель
+    \begin{align*}
+        y_i &\sim \gN(m_i, s_i)\\
+        m_i &\sim x_{i} + \dots \\
+        \log s_i &\sim z_{i}\\
+    \end{align*}
+    \pause
+    \begin{block}{Заметка}
+        Заметим, что $s_i$ зависит от $z_i$. Такие модели требуют оптимизационных методов для оценки.
+    \end{block}
+\end{frame}
+\begin{frame}{Другие функции правдоподобия}
+    Можно добиться большей гибкости, изменив функцию правдоподобия и ослабив некоторые ограничения
+    \begin{align*}
+        y_i &\sim \gT(\nu_i ,m_i, s_i)\\
+        m_i &\sim x_{i} + \dots \\
+        \log s_i &\sim z_{i} + \dots \\
+        \log \nu_i &\sim w_{i} + \dots  \\
+    \end{align*}
+    \pause
+    \begin{block}{Заметка}
+        Выше -- модель на основе распределения Стьюдента с переменным числом степеней свободы. Её оценки очень зашумлены, если не использовать регуляризацию
+    \end{block}
+\end{frame}
+\subsection{Ограничения}
+\begin{frame}{Оценка модели}
+    Из эконометрики знаем, что с помощью ММП получаем оценку
+    \begin{align*}
+        \hat \beta = (X^\top X)^{-1} X^\top y
+    \end{align*}
+    \pause
+    \begin{enumerate}
+        \item А если какие-то коэффициенты точно положительны?
+        \item А если какие-то коэффициенты в $\beta$ маленькие по величине?
+        \item А если какие-то переменные не имеют статзначимости?
+    \end{enumerate}
+    \begin{alertblock}{Ограничение}
+        В частотной статистике нельзя никак применять имеющиеся знания
+    \end{alertblock}
+\end{frame}
+\section{Байесовсая линейная регрессия}
+\begin{frame}{Априорные распределения}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+        Байесовский подход предполагает наличие априорных распределений, но каких?
+        \begin{align*}
+            y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+            \beta_j &\sim ???\\
+            c &\sim ???\\
+            \sigma & \sim ???
+        \end{align*}
+        Ранее ввели два параметра: $\beta$, $\sigma$
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/stars-meme.jpeg}
+    \end{column}
+\end{columns}
+\end{frame}
+\subsection{Классические предположения}
+\begin{frame}{Выбираем распределения}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    В качестве априорного распределения возьмем нормальное распределение
+    \begin{align*}
+            y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+            \beta_j &\sim \gN(0, 1)\\
+            c & \sim \gN(0, 1)\\
+            \sigma & \sim \gN_+(1)\qquad \text{// Half Normal}
+    \end{align*}
+    \visible<2>{\begin{alertblock}{Внимание}
+        Базовые параметры для априорных $\beta$ и $\sigma$ могут приводить к непредсказуемым результатам
+    \end{alertblock}}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/example-1.png}
+        \caption{Пример данных}
+    \end{figure}  
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Выбираем распределения}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            Для подбора априорного -- воспользуемся предиктивным распределением
+            \begin{align*}
+            y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+            \only<1>{
+            \beta_j &\sim \gN(0, 1)\\
+            }
+            \only<2>{
+            \beta_j &\sim \gN(0, 100)\\
+            }
+            \only<1>{
+            c & \sim \gN(0, 1)\\
+            }
+            \only<2>{
+            c & \sim \gN(0, 100)\\
+            }
+            \sigma & \sim \gN_+(1)\qquad \text{// Half Normal}
+        \end{align*}
+        \begin{alertblock}{Внимание}
+            Иногда априорное предиктивное распределение ''съезжает'', поэтому надо проверять визуализацию
+        \end{alertblock}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \begin{figure}
+                \centering
+                \captionsetup{justification=centering}
+                \only<1>{\includegraphics[width=\linewidth]{img/example-2.png}}
+                \only<2>{\includegraphics[width=\linewidth]{img/example-3.png}}
+                \caption{Априорное предиктивное распределение}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Больше параметров -- больше проблем}
+Предполагая априорно независимость объясняющих переменных, можно вычислить теоретическую дисперсию
+    \begin{align*}
+        y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+        V[y_i] &= \sum V[x_{ij}] * V[\beta_j] 
+    \end{align*}
+    Разница в значениях в случае $x_i\in R^3$ и в случае $x_i\in R^{100}$ велика
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/dimension-var.png}
+        \caption{Больше объясняющих переменных -- больше дисперсия}
+    \end{figure}
+\end{frame}
+\begin{frame}{Как это легко поправить}
+Простой способ убрать зависимость от числа регрессоров следующий
+    \begin{align*}
+        y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+        \beta_j &\sim \textcolor{red}{\gN(0, \frac{\sigma^2_\beta}{D})}\\
+        \dots&
+    \end{align*}
+\begin{block}{Совет}
+    Стандартизируйте данные: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
+\end{block}
+\end{frame}
+\begin{frame}{Практический подход}
+    Для начала -- стандартизируем данные: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
+    \begin{align*}
+            \bar y_i &\sim \gN(c + \bar \beta^\top \bar x_i, \sigma)\\
+            \bar\beta &\sim \gN(0, 1/D)\\
+            c & \sim \gN(0, 1)\\
+            \sigma & \sim \gN_+(1)
+    \end{align*}
+\begin{columns}
+    \begin{column}{0.6\linewidth}
+    \begin{enumerate}
+        \item Дисперсия входных/выходных данных равна 1
+        \item Среднее входных/выходных данных равно 0
+        \item Почти всегда рабоает
+        \item Сложно подобрать априорное для $\sigma$ 
+    \end{enumerate}
+    \end{column}
+    \begin{column}{0.4\linewidth}
+    \only<2>{
+        \begin{block}{Восстановление исходных параметров}
+            $$\beta_j = \frac{\bar\beta}{\operatorname{std}(x_j)}$$
+        \end{block}
+    }
+    \end{column}
+\end{columns}
+\end{frame}
+\section{R2D2M2CP}
+\subsection{Обсуждение}
+\begin{frame}{Мы знаем что мы знаем}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Подбирать априорные -- тяжело, как сделать проще? Задавать себе вопросы!
+    \begin{itemize}
+        \item<2->В: Что мы знаем про линейную регрессию?
+        \item<3->О:  $R^2$ для неё -- метрика качества
+        \item<4->В: А еще?
+        \item<5->О: Какие-то переменные более важные
+        \item<6->О: Какие-то переменные имеют положительное влияние
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/questions-meme.jpeg}
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Априорное для $R^2$}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            Как интерпретировать $R^2$?
+            \begin{enumerate}
+                \item Мера подгонки модели под данные
+                \begin{itemize}
+                    \item 0 - очень плохая подгонка
+                    \item 1 - идеальная подгонка
+                \end{itemize}
+                \item При близких к 1 значениях -- скорее всего, переобучение
+                \item $R^2$ - \textbf{доля объясненной дисперсии}
+            \end{enumerate}
+            
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \begin{align*}
+                R^2 &= 1-\frac{\sigma_r^2}{\sigma_T^2}\\
+                FVU &= \frac{\sigma_r^2}{\sigma_T^2}
+            \end{align*}
+        \begin{itemize}
+            \item $\sigma_r^2$ - сумма квадратов остатков
+            \item $\sigma_T^2$ - общая сумма квадратов
+            \item $FVU$ - \textbf{F}raction \textbf{V}ariance \textbf{U}nexplained
+        \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+\subsection{Априорное распределение $R^2$}
+\begin{frame}{Настраиваем априорное для $R^2$ }
+    \begin{columns}
+    \begin{column}{0.5\linewidth}
+         Предположения для $R^2$ можно сделать даже перед построением регрессий, зная как они получены.
+         \begin{itemize}
+             \item $R^2<0.5$ -- в поле, шум в данных
+             \item $0.5<R^2<0.75$ -- в поле, хорошие данные
+             \item $0.75<R^2<0.90$ -- в лаборатории, шум в данных 
+             \item $R^2>0.90$ -- в лаборатории, хорошие данные
+         \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \includegraphics[width=\linewidth]{img/r2-results.png}
+    \end{column}
+    \end{columns}
+    \begin{center}
+    \includegraphics[width=0.8\linewidth]{img/r2-range.png}    
+    \end{center}
+\end{frame}
+\begin{frame}{Априорный $R^2$}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+        \begin{itemize}
+            \item Какого качество ваших данных?
+            \item Вы учли все факторы для построения модели?
+            \item Правильно ли вы собрали данные?
+        \end{itemize}
+        \begin{align*}
+            R^2\sim \operatorname{Beta}(\mu=\tilde\mu_{r}, \sigma=\tilde\sigma_r)
+        \end{align*}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/r2-prior.png}
+    \end{column}
+\end{columns}
+    \begin{block}{Заметка}
+    Это не \href{https://avehtari.github.io/bayes_R2/bayes_R2.html}{байесовский $R^2$}. \textbf{Априорный} $R^2$ -- \textbf{ожидаемый уровень} качества модели.
+    \end{block}
+\end{frame}
+\begin{frame}{Почувствуем разницу}
+\begin{columns}
+    \begin{column}[t]{0.5\linewidth}
+    Было
+        \begin{itemize}
+            \item Как задать априорное для $\beta$?
+            \item Какой у него смысл?
+            \item Хм, нужно поменять априорное, если я добавлю параметры
+            \item Как задать априорное для $\sigma$?
+            \item Слишком сложное, есть базовые значения?
+            \item Эх, базовые значения бессмыслены
+        \end{itemize}
+    \end{column}
+    \begin{column}[t]{0.5\linewidth}
+    Стало
+        \begin{itemize}
+            \item Как хороша модель? Смотрим на $R^2$
+            \item Какая переменная более или менее важная?
+            \item Какое направление влияние будет у переменных?
+        \end{itemize}
+    \end{column}
+\end{columns}
+\end{frame}
+\subsection{Важность переменных}
+\begin{frame}{Важность переменных}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            Мы предсказываем зарплату, 
+            \begin{itemize}
+                \item что важнее -- возраст или опыт?
+                \item что важнее -- опыт или образование?
+            \end{itemize}
+            В традиционных моделях -- ответить можно только после оценки
+            \visible<2>{
+            \begin{block}{Байесовский подход}
+                \begin{itemize}
+                    \item Делаем предположения, какие фичи важнее для модели
+                    \item Используем байесовские инструментальные переменные
+                \end{itemize}
+            \end{block}
+            }
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \includegraphics[width=\linewidth]{img/grapg.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Что такое важность переменных?}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            Некоторые определения
+            \begin{itemize}
+                \item Объемы информации, которые получаем
+                \item<alert@2> \textbf{F}raction of \textbf{V}ariance \textbf{E}xplained
+            \end{itemize}
+            \visible<2->{
+            \begin{block}{Аналогичный подход!}
+                Как и в случае $R^2$, можно считать \textbf{FVE} для фичи
+            \end{block}}
+            \visible<3->{
+            Идея проста
+            \begin{align*}
+                \phi_\text{FVE}\sim \operatorname{Dirichlet}(\alpha_{\text{FVE}})
+            \end{align*}}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \includegraphics[width=\linewidth]{img/education-bar.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Разбираем с априорным распределением для FVE}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            Надо разобраться с распределением Дирихле
+            \begin{align*}
+                \phi_\text{FVE}\sim \operatorname{Dirichlet}(\alpha_{\text{FVE}})
+            \end{align*}
+            \begin{itemize}
+                \item Чем больше $\alpha_i$, тем более $i$-ая переменная важна
+                \item Чем больше $\alpha_i$ тем больше уверенности в важности переменной
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \includegraphics[width=\linewidth]{img/dirichlet.jpg}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Примеры $\alpha_{\text{FVE}}$}
+    \begin{align*}
+        \phi_\text{FVE}\sim \operatorname{Dirichlet}(\alpha_{\text{FVE}})
+    \end{align*}
+    \begin{itemize}
+        \item $\alpha_{\text{FVE}} = (1, 1, 1)$ - Ничего не знаем про важность, возможно какие-то пемененные не нужны
+        \item $(\alpha_{\text{FVE}})_i=1$ - переменную можно не использовать или она очень важна, не ясно
+        \item $(\alpha_{\text{FVE}})_i=10$ - скорее всего, переменная важна
+        \item $(\alpha_{\text{FVE}})_i=20$ - переменную точно надо использовать
+        \item $\alpha_{\text{FVE}} = (10, 20, 30)$ - Используем все переменные, но 2-ая и 3-ая переменные важнее для модели
+    \end{itemize}
+    \pause
+    \begin{block}{Дисклеймер}
+        Да, это самая вольная интерпретация того, как это работает
+    \end{block}
+\end{frame}
+\begin{frame}{$\alpha_{\text{FVE}}$ и $R^2$}
+\begin{align*}
+    \phi_\text{FVE} &\sim \operatorname{Dirichlet}(\tilde\alpha_{\text{FVE}})\\
+    R^2 & \sim \operatorname{Beta}(\mu=\tilde\mu_{r}, \sigma=\tilde\sigma_r)
+\end{align*}
+    Что решаем
+    \begin{enumerate}
+        \item Насколько хороша модель в принципе ($R^2$)
+        \item Насколько важна отдельная фича ($\tilde\alpha_{\text{FVE}}$)
+    \end{enumerate}
+\end{frame}
+\subsection{R2D2M2}
+\begin{frame}{Подводим итоги}
+    \begin{columns}
+        \begin{column}{0.6\linewidth}
+            \begin{enumerate}
+                \item Стандартизируем данные: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
+                \item Предположения о $R^2$
+                \item Предполажения о важности переменных
+                \item Готово
+            \end{enumerate}
+        \end{column}
+        \begin{column}{0.4\linewidth}
+            \begin{align*}
+            \bar y_i &\sim \gN(\bar\beta^\top\bar x_i, \sigma)\\
+            \phi_\text{FVE} &\sim \operatorname{Dirichlet}(\tilde\alpha_{\text{FVE}})\\
+            R^2 & \sim \operatorname{Beta}(\mu=\tilde\mu_{r}, \sigma=\tilde\sigma_r)\\
+            \sigma^2 &= 1-R^2\\
+            \bar\beta &\sim \gN(0, \sqrt{\phi_\text{FVE}\cdot R^2})
+        \end{align*}
+        \end{column}
+    \end{columns}
+    \begin{block}{Больше формул}
+        Вот недавно разработанный R2D2M2 \cite{aguilar2023intuitive}, можно почитать математические выкладки.
+    \end{block}
+\end{frame}
+\subsection{Вероятность корреялции}
+\begin{frame}{Что-то еще можно учесть? R2D2M2\textcolor{red}{CP}}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            Да, конечно 
+            \begin{itemize}
+                \item "Какой знак у корреляции?"
+                \item "Насколько я уверен, что корреляция -- позитивная?"
+            \end{itemize}
+            \pause
+            Какое предлагаю решение:
+            \begin{align*}
+                P(\bar \beta_j > 0) = (\psi_{CP})_j\\
+                \psi_{CP} \sim \operatorname{Beta}(\mu=\mu_{CP},\sigma=\sigma_{CP})
+            \end{align*}    
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \includegraphics[width=\linewidth]{img/r2m2d2cp.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Технические детали}
+    \begin{align*}
+        P(\bar \beta_j > 0) &= (\psi_{CP})_j\\
+        \bar \beta &\sim \gN (
+        \textcolor{red}{\mu_{CP}(\psi_{CP}, R^2\cdot \phi_\text{FVE})},
+        \textcolor{red}{\sigma_{CP}(\psi_{CP}, R^2\cdot \phi_\text{FVE})}
+        )\\
+        \psi_{CP} &\sim \operatorname{Beta}(\mu=\mu_{CP},\sigma=\sigma_{CP})\\
+        \phi_\text{FVE} &\sim \operatorname{Dirichlet}(\tilde\alpha_{\text{FVE}})\\
+            R^2 & \sim \operatorname{Beta}(\mu=\tilde\mu_{r}, \sigma=\tilde\sigma_r)\\
+    \end{align*}
+    \begin{block}{Значения $\mu_{CP}$, $\sigma_{CP}$ -- единственные}
+    \begin{equation*}
+        \begin{cases}
+            \mu_{CP}(p, v)=\frac{\sqrt{2v} \operatorname{erf}^{-1}(2 p-1)}{\sqrt{2 \operatorname{erf}^{-1}(2 p-1)^2+1}}\\
+            \sigma_{CP}(p, v)=\frac{\sqrt{v}}{\sqrt{2 \operatorname{erf}^{-1}(2 p-1)^2+1}}
+        \end{cases}
+    \end{equation*}
+    \end{block}
+\end{frame}
+\begin{frame}{Подводим итоги}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            Чтобы R2D2M2CP работал
+            \begin{enumerate}
+                \item Стандартизируем данные: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
+                \item Предположение о $R^2$
+                \item Предположение о важности переменных
+                \item Предположение о знаке корреляций между переменным
+                \item Точно готово!
+            \end{enumerate}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            Пример практического применения \cite{pymc-experimental-r2d2m2cp}
+            \begin{figure}
+                \centering
+                \includegraphics[width=0.5\linewidth]{img/pymc-logo}
+            \end{figure}
+            \url{https://github.com/pymc-devs/pymc-experimental/pull/137}
+        \end{column}
+    \end{columns}
+\end{frame}
+\section{Продвинутые обобщенные модели}
+\begin{frame}{Вернем к обобщенным линейным моделям}
+    Рассмотрим следующие предпосылки:
+    \begin{align*}
+        y_i &\sim \gT(\nu_i ,m_i, s_i)\\
+        m_i &\sim x_{i}+ \dots \\
+        \log s_i &\sim z_{i} + \dots
+    \end{align*}
+    \begin{itemize}
+        \item<2-> Какие переменные важны $s$? 
+        
+        (предположение о важности переменных)
+        \item<3-> Они вообще как-то влияют? (предположение о $R^2$)
+    \end{itemize}
+    \pause
+    \begin{block}{Априорное для Nu}
+        Число степеней свободы можно рассчитать при следующем предположении: \url{https://github.com/pymc-devs/pymc-experimental/pull/252}
+    \end{block}
+\end{frame}
+\section{Заключение}
+\begin{frame}{Финальные заметки}
+    \begin{columns}
+        \begin{column}{0.65\linewidth}
+            \begin{itemize}
+                \item R2D2M2CP -- труднопроизносимый термин
+                \item Дает о чем подумать при использовании традиционных моделей
+                \item Расширяет применение обобщенных линейных моделей, позволяя контролировать вспомогательные модели
+                \item Дополнительные инструмент для работы с обобщенными аддитивными моделями с применением гауссовских процессов
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.35\linewidth}
+            \includegraphics[width=\linewidth]{img/r2m2d2cp-glm-meme.jpeg}
+        \end{column}
+    \end{columns}
+    
+\end{frame}
+\begin{frame}[allowframebreaks]
+        \frametitle{Ссылки}
+        \bibliographystyle{abbrv}
+        \bibliography{references.bib}
+\end{frame}
+\end{document}
