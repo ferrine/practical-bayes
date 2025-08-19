@@ -276,7 +276,7 @@
         \item В финансах нужно оценивать риски%In finance you need risks
         \item Делайте симуляции, не доверяйте точечным оценкам%Simulate, do not trust point estimates
         \item Байес помогает принимать информированные решения%Bayes helps to take informed decisions
-    \end{itemize}        
+    \end{itemize}
     \end{column}
     \begin{column}{0.4\linewidth}
         \includegraphics[width=\linewidth]{img/roi-plot.png}
@@ -352,23 +352,24 @@
         \begin{column}{0.6\linewidth}
             \begin{enumerate}
                 \item Стандартизируйте данные: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
-                \item Decide on $R^2$
-                \item Decide on feature importance
-                \item Decide on effect size sign
-                \item Done
+                \item Выберите $R^2$
+                \item Выберите важность признаков
+                \item Выберите знак размера эффекта%Decide on effect size sign
+                \item Готово
             \end{enumerate}
         \end{column}
         \begin{column}{0.4\linewidth}
         \begin{figure}
             \centering
             \includegraphics[width=0.5\linewidth]{img/qr-linear-regressions.png}\\
-            Webinar about \\ Awesome Linear Regressions
+            Вебинар про линейные регрессии %\\ Awesome Linear Regressions
         \end{figure}
-            
+
         \end{column}
     \end{columns}
-    \begin{block}{Even more formulas}
-        This is a recently developed the R2D2M2 prior\cite{aguilar2023intuitive}, read more detailed math there. And PyMC implementation of the approach R2D2M2CP (the extension) \cite{pymc-experimental-r2d2m2cp}.
+    \begin{block}{Ещё больше формул}
+        Это недавно разработанное априорное распределение R2D2M2, см. подробности в \cite{aguilar2023intuitive}. Реализация R2D2M2 в PyMC: \cite{pymc-experimental-r2d2m2cp}.
+        %This is a recently developed the R2D2M2 prior\cite{aguilar2023intuitive}, read more detailed math there. And PyMC implementation of the approach R2D2M2CP (the extension) \cite{pymc-experimental-r2d2m2cp}.
     \end{block}
 \end{frame}
 \begin{frame}{Кейс: маркетинг}
@@ -418,7 +419,7 @@
         \item Как выбрать удобрения?
         \item Как выбрать регион?
         \item Как комбинировать регионы и удобрения?
-    \end{itemize} 
+    \end{itemize}
     \begin{block}{Решение}
         Объёмное А/Б тестирование%Extensive AB testing required
     \end{block}
@@ -437,7 +438,7 @@
         \item Иерархия: общий эффект для регионов%Hierarchies: Include region common effect
         \item Структура: соседние поля взаимосвязаны%Structure: Close fields interact
         \item Прогноз: урожайность нового поля%Predictions: Estimate yield on a new field
-    \end{itemize} 
+    \end{itemize}
     \begin{block}{Результат}
         Пайплайн для экспериментов с удобрениями на уровне континента%Established pipeline to experiment with fertilizers on the continent level
     \end{block}
@@ -459,7 +460,7 @@
     \includegraphics[width=\linewidth]{img/update-your-prior.jpeg}
     \end{column}
     \begin{column}{0.3\linewidth}
-    
+
     \end{column}
 \end{columns}
 \end{frame}
