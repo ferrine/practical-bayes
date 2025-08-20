@@ -10,7 +10,7 @@
 %math
 \input{math_commands.tex}
 \author{Максим Кочуров}
-\title[Прикладные байесовские методы]{Байесовское моделирование}
+\title[Прикладные байесовские методы]{Байесовское моделирование }
 \institute[МГУ]{МГУ им. М.В. Ломоносова}
 \date{Лекция 2}
 \usepackage{caption} % Кастомные названия объектов
@@ -74,7 +74,8 @@
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth]{img/funnel_leapfrog}
-    \caption{интегрирование Leapfrog}
+    \captionsetup{justification=centering}
+    \caption{интегрирование методом Leapfrog}
     % \label{fig:my_label}
 \end{figure}
 \end{column}
@@ -390,7 +391,7 @@
     \begin{figure}
         \centering
         \includegraphics[width=\linewidth]{img/graphviz-model-simple}
-        \caption{Graphviz Model}
+        \caption{Визуализация модели в Graphviz}
     \end{figure}
 \end{frame}
 \begin{frame}{Априорное предиктивное распределение}
@@ -726,7 +727,7 @@ $\sigma$ присутствует в каждом типе моделей
         \begin{itemize}
             \item Выбираем параметр, для которого реализуем иерархии
             \item Выбираем, допустима ли вариативность остальных параметров
-            \item Поправляем отклонения, если нужно -- повторно подбираем параметры
+            \item Поправляем дивергенции, если нужно -- повторно подбираем параметры
         \end{itemize}
         }
     \end{enumerate}
