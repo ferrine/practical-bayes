@@ -1,95 +1,96 @@
-\documentclass[aspectratio=169,notopbar]{beamer}
-\usepackage{ferres}
+\documentclass[aspectratio=169,notopbar]{beamer} \usepackage{ferres}
 
 
 
 \framelogo{img/pymc-labs-logo, img/msu-logo}
 %math
-\input{math_commands.tex}
-\author{Max Kochurov}
-\title[Bayes in the Wild, MSU 2023]{Bayes in the Wild}
-\institute{PyMC Labs}
-\date{June 20, 2023}
+\input{math_commands.tex} \author{Max Kochurov} \title[Bayes in the
+  Wild, MSU 2023]{Bayes in the Wild} \institute{PyMC Labs} \date{June
+  20, 2023}
 \begin{document}
 \begin{frame}
-	\maketitle
+  \maketitle
 \end{frame}
 \begin{frame}{About Me}
 \begin{columns}
 \begin{column}{0.8\linewidth}
 \begin{itemize}
-    \item Graduated from 
+\item Graduated from
         \begin{itemize}
-            \item BS - MSU EF (2018)
-            \item MS - Skoltech DS (2020)
+        \item BS - MSU EF (2018)
+        \item MS - Skoltech DS (2020)
         \end{itemize}
-    \item Core developer at PyMC
-    \item Principle Data Scientist at PyMC Labs
-    \item BayesGroup alumni
-    \item Experience with 
+      \item Core developer at PyMC
+      \item Principle Data Scientist at PyMC Labs
+      \item BayesGroup alumni
+      \item Experience with
     \begin{itemize}
-        \item Large scale Deep Learning and Computer Vision
-        \item Differential geometry for Graph Neural Networks
-        \item Bayesian Methods for Deep Learning
-        \item Applied Bayesian Statistics for industry (e.g. AB testing, Bio-Informatics, Marketing)
+    \item Large scale Deep Learning and Computer Vision
+    \item Differential geometry for Graph Neural Networks
+    \item Bayesian Methods for Deep Learning
+    \item Applied Bayesian Statistics for industry (e.g. AB testing,
+      Bio-Informatics, Marketing)
     \end{itemize}
 \end{itemize}
 \end{column}
 \begin{column}{0.2\linewidth}
-\includegraphics[width=\linewidth]{img/msu-logo}
-\includegraphics[width=\linewidth]{img/sk-logo}
-\includegraphics[width=\linewidth]{img/bayesgroup-logo}
-\includegraphics[width=\linewidth]{img/pymc-logo}
-\includegraphics[width=\linewidth]{img/pymc-labs-logo}
+  \includegraphics[width=\linewidth]{img/msu-logo}
+  \includegraphics[width=\linewidth]{img/sk-logo}
+  \includegraphics[width=\linewidth]{img/bayesgroup-logo}
+  \includegraphics[width=\linewidth]{img/pymc-logo}
+  \includegraphics[width=\linewidth]{img/pymc-labs-logo}
 \end{column}
 \end{columns}
 \end{frame}
 \section{The Woods}
 \begin{frame}{Problems Landscape}
-\includegraphics[width=\linewidth]{img/Problems Landscape.jpeg}
+  \includegraphics[width=\linewidth]{img/Problems Landscape.jpeg}
 \end{frame}
 \begin{frame}{Unlock Thinking}
     \begin{columns}
     \begin{column}{0.6\linewidth}
-    Classical Machine learning gives a lot of constraints
+      Classical Machine learning gives a lot of constraints
     \begin{itemize}
-        \item Model parametrization is out of control
-        \item Hierarchies are hard to add
-        \item Flexibility is never priority
+    \item Model parametrization is out of control
+    \item Hierarchies are hard to add
+    \item Flexibility is never priority
     \end{itemize}
     Thinking is \textbf{algorithm focused}, not the problem focused
     \begin{block}{Disclaimer}
-    Which is not usually a problem, but not every problem is solved in a standard way.
+      Which is not usually a problem, but not every problem is solved
+      in a standard way.
     \end{block}
     \end{column}
     \begin{column}{0.4\linewidth}
-    \includegraphics[width=0.8\linewidth]{img/lock.jpeg}
+      \includegraphics[width=0.8\linewidth]{img/lock.jpeg}
     \end{column}
     \end{columns}
 \end{frame}
 \begin{frame}{Problem Oriented Thinking}
     \begin{columns}
     \begin{column}{0.6\linewidth}
-    White box models allow flexibility
+      White box models allow flexibility
     \begin{itemize}
-        \item Model parametrization is in direct control
-        \item Model structure is your decision
-        \item What is possible will sound magic
+    \item Model parametrization is in direct control
+    \item Model structure is your decision
+    \item What is possible will sound magic
     \end{itemize}
-    Thinking is \textbf{problem focused}, algorithms are complimentary.
+    Thinking is \textbf{problem focused}, algorithms are
+    complimentary.
     \begin{block}{Disclaimer}
-        Make sure your problem is not "fit-predict", otherwise there is no added value from Bayesian methods.
+      Make sure your problem is not "fit-predict", otherwise there is
+      no added value from Bayesian methods.
     \end{block}
     \end{column}
     \begin{column}{0.4\linewidth}
-    \includegraphics[width=\linewidth]{img/galaxy.png}
+      \includegraphics[width=\linewidth]{img/galaxy.png}
     \end{column}
     \end{columns}
 \end{frame}
 \begin{frame}{Problem Identification}
 \begin{columns}
 \begin{column}{0.6\linewidth}
-Data is usually structured 
+  Data is usually structured
 \begin{itemize}
 \item Nested / hierarchical data
 \item Time-series data
@@ -97,12 +98,12 @@ Data is usually structured
 \end{itemize}
 Your problem is not a simple prediction problem:
 \begin{itemize}
-    \item If you care about predictions only, ML is for you
-    \item If you do not need interpretation, DL is for you
+\item If you care about predictions only, ML is for you
+\item If you do not need interpretation, DL is for you
 \end{itemize}
 \end{column}
 \begin{column}{0.4\linewidth}
-\includegraphics[width=\linewidth]{img/glass.png}
+  \includegraphics[width=\linewidth]{img/glass.png}
 \end{column}
 \end{columns}
 \end{frame}
@@ -112,16 +113,34 @@ Your problem is not a simple prediction problem:
     \begin{columns}
         \begin{column}{0.5\linewidth}
             \begin{itemize}
-                \item Predicting Sales for Multiple Stores
-                % Bayesian hierarchical modeling allows us to model the variation in sales within each store as well as the variation between different stores. By taking into account the hierarchical structure of the data, we can make more accurate sales predictions and improve inventory management.
-                \item Understanding the Spread of Infectious Diseases
-                % Bayesian hierarchical modeling can be used to model the spatial and temporal variation in disease incidence across multiple locations. By considering the hierarchical structure of the data (e.g., cases nested within counties or states), we can make more accurate predictions of disease spread and identify the factors that contribute to higher rates of transmission.
-                \item Predicting Consumer Preferences
-                % Bayesian hierarchical modeling enables us to model the variation in consumer preferences within individual households, while also considering the overall patterns of consumer behavior across different households. This approach can help identify factors that drive consumer behavior and inform marketing strategies.
+            \item Predicting Sales for Multiple Stores
+              % Bayesian hierarchical modeling allows us to model the
+              %  variation in sales within each store as well as the
+              %  variation between different stores. By taking into
+              %  account the hierarchical structure of the data, we
+              %  can make more accurate sales predictions and improve
+              %  inventory management.
+            \item Understanding the Spread of Infectious Diseases
+              % Bayesian hierarchical modeling can be used to model
+              %  the spatial and temporal variation in disease
+              %  incidence across multiple locations. By considering
+              %  the hierarchical structure of the data (e.g., cases
+              %  nested within counties or states), we can make more
+              %  accurate predictions of disease spread and identify
+              %  the factors that contribute to higher rates of
+              %  transmission.
+            \item Predicting Consumer Preferences
+              % Bayesian hierarchical modeling enables us to model the
+              %  variation in consumer preferences within individual
+              %  households, while also considering the overall
+              %  patterns of consumer behavior across different
+              %  households. This approach can help identify factors
+              %  that drive consumer behavior and inform marketing
+              %  strategies.
             \end{itemize}
         \end{column}
         \begin{column}{0.5\linewidth}
-            \includegraphics[width=0.9\linewidth]{img/Hierarchy.jpeg}
+          \includegraphics[width=0.9\linewidth]{img/Hierarchy.jpeg}
         \end{column}
     \end{columns}
 \end{frame}
@@ -129,15 +148,18 @@ Your problem is not a simple prediction problem:
 \begin{columns}
     \begin{column}{0.5\linewidth}
             \begin{itemize}
-                \item<alert@1> Unequal groups contribute to population prior
-                \item<alert@2> Bayesian inference shares knowledge between groups
-                \item<alert@3> You can simulate unobserved groups from population
+            \item<alert@1> Unequal groups contribute to population
+              prior
+            \item<alert@2> Bayesian inference shares knowledge between
+              groups
+            \item<alert@3> You can simulate unobserved groups from
+              population
             \end{itemize}
         \end{column}
         \begin{column}{0.5\linewidth}
-            \only<1>{\includegraphics[width=0.8\linewidth]{img/population-prior-1.jpeg}}
-            \only<2>{\includegraphics[width=0.8\linewidth]{img/population-prior-2.jpeg}}
-            \only<3>{\includegraphics[width=0.8\linewidth]{img/population-prior-3.jpeg}}
+          \only<1>{\includegraphics[width=0.8\linewidth]{img/population-prior-1.jpeg}}
+          \only<2>{\includegraphics[width=0.8\linewidth]{img/population-prior-2.jpeg}}
+          \only<3>{\includegraphics[width=0.8\linewidth]{img/population-prior-3.jpeg}}
         \end{column}
     \end{columns}
 \end{frame}
@@ -145,15 +167,16 @@ Your problem is not a simple prediction problem:
     \begin{columns}
     \begin{column}{0.5\linewidth}
             \begin{itemize}
-                \item<alert@1> You have regional markets and want to expand
-                \item<alert@2> You need to guess new region preferences
-                \item<alert@3> Use Bayesian Methods to simulate the Unseen
+            \item<alert@1> You have regional markets and want to
+              expand
+            \item<alert@2> You need to guess new region preferences
+            \item<alert@3> Use Bayesian Methods to simulate the Unseen
             \end{itemize}
         \end{column}
         \begin{column}{0.5\linewidth}
-            \only<1>{\includegraphics[width=0.8\linewidth]{img/europe-1.jpeg}}
-            \only<2>{\includegraphics[width=0.8\linewidth]{img/europe-2.jpeg}}
-            \only<3>{\includegraphics[width=0.8\linewidth]{img/europe-3.jpeg}}
+          \only<1>{\includegraphics[width=0.8\linewidth]{img/europe-1.jpeg}}
+          \only<2>{\includegraphics[width=0.8\linewidth]{img/europe-2.jpeg}}
+          \only<3>{\includegraphics[width=0.8\linewidth]{img/europe-3.jpeg}}
         \end{column}
     \end{columns}
 \end{frame}
@@ -161,13 +184,13 @@ Your problem is not a simple prediction problem:
     \begin{columns}
     \begin{column}{0.5\linewidth}
             \begin{itemize}
-                \item Geography is gold
-                \item Groups depend on each other
-                \item You can use it to boost your prediction with ease
+            \item Geography is gold
+            \item Groups depend on each other
+            \item You can use it to boost your prediction with ease
             \end{itemize}
         \end{column}
         \begin{column}{0.5\linewidth}
-            \includegraphics[width=\linewidth]{img/geography-gold.png}
+          \includegraphics[width=\linewidth]{img/geography-gold.png}
         \end{column}
     \end{columns}
 \end{frame}
@@ -176,13 +199,13 @@ Your problem is not a simple prediction problem:
     \begin{columns}
     \begin{column}{0.5\linewidth}
             \begin{itemize}
-                \item Separate the wheat from the chaff
-                \item Tell what you think of of your problem
-                \item Let the model take the expertise seriously 
+            \item Priors are like regularization
+            \item Soft constrain for the solution space
+            \item Helps to put expertise into the model
             \end{itemize}
         \end{column}
         \begin{column}{0.5\linewidth}
-            \includegraphics[width=\linewidth]{img/relevant.jpeg}
+          \includegraphics[width=\linewidth]{img/relevant.jpeg}
         \end{column}
     \end{columns}
 \end{frame}
@@ -190,13 +213,13 @@ Your problem is not a simple prediction problem:
     \begin{columns}
     \begin{column}{0.6\linewidth}
     \begin{itemize}
-        \item With few data all you have is your expert knowledge
-        \item Putting it into the priors makes the model usable
-        \item Every example matters
+    \item With few data all you have is your expert knowledge
+    \item Putting it into the priors makes the model usable
+    \item Every example matters
     \end{itemize}
         \end{column}
         \begin{column}{0.4\linewidth}
-            \includegraphics[width=\linewidth]{img/reality-uncertainty.jpeg}
+          \includegraphics[width=\linewidth]{img/reality-uncertainty.jpeg}
         \end{column}
     \end{columns}
 \end{frame}
@@ -204,97 +227,100 @@ Your problem is not a simple prediction problem:
 \begin{columns}
     \begin{column}{0.62\linewidth}
             \begin{itemize}
-        \item Do not let the black box model decide
-        \item Give your own structure 
-        \item One size does not fit all
+            \item Do not let the black box model decide
+            \item Give your own structure
+            \item One size does not fit all
     \end{itemize}
         \end{column}
         \begin{column}{0.38\linewidth}
-            \includegraphics[width=\linewidth]{img/causality.jpeg}
+          \includegraphics[width=\linewidth]{img/causality.jpeg}
         \end{column}
     \end{columns}
 \end{frame}
 
 
 \begin{frame}{p-value in A/B tests}
-\textbf{Express test, what is true from this?}
+  \textbf{Express test, what is true from this?}
 \begin{columns}
     \begin{column}{0.7\linewidth}
     \begin{enumerate}
-        \item P - the probability that the null hypothesis is true.
-        \item 1 minus the value of P - this is the probability that the alternative hypothesis is true.
-        \item A statistically significant test result $(P \le 0.05)$ means that the test hypothesis is false or should be rejected.
-        \item The value $P > 0.05$ means that no effect was observed.
+    \item P - the probability that the null hypothesis is true.
+    \item 1 minus the value of P - this is the probability that the
+      alternative hypothesis is true.
+    \item A statistically significant test result $(P \le 0.05)$ means
+      that the test hypothesis is false or should be rejected.
+    \item The value $P > 0.05$ means that no effect was observed.
     \end{enumerate}
     \end{column}
     \begin{column}{0.3\linewidth}
-        \includegraphics[width=\linewidth]{img/p-value-1}
+      \includegraphics[width=\linewidth]{img/p-value-1}
     \end{column}
 \end{columns}
-    \pause
+\pause
     \begin{alertblock}{Is using p-value bad?}
-    I do not urge you to give up p-values, but I urge you to add more understanding.
+      I do not urge you to give up p-values, but I urge you to add
+      more understanding.
     \end{alertblock}
 \end{frame}
 
 \begin{frame}{Immune to p-values}
-Greatest insights into p-values:
+  Greatest insights into p-values:
 \begin{figure}
-    \centering
-    \includegraphics[width=0.8\linewidth]{img/confidence-intervals}
+  \centering
+  \includegraphics[width=0.8\linewidth]{img/confidence-intervals}
 \end{figure}
 \end{frame}
 \begin{frame}{Uncertainty}
 \begin{columns}
     \begin{column}{0.5\linewidth}
         \begin{align*}
-        \text{ROI} &= \frac{\text{NPV}-\text{CapEx}}{\text{CapEx}}\\
-        \text{NPV} &= (\text{CLV}(r) - \text{OpEx}(r)) \cdot \Delta N
+          \text{ROI} &= \frac{\text{NPV}-\text{CapEx}}{\text{CapEx}}\\
+          \text{NPV} &= (\text{CLV}(r) - \text{OpEx}(r)) \cdot \Delta N
     \end{align*}
     \end{column}
     \begin{column}{0.5\linewidth}
         \begin{itemize}
-            \item CLV(r) - Discounted User Value
-            \item OpEx(r) - Operational Cost
+        \item CLV(r) - Discounted User Value
+        \item OpEx(r) - Operational Cost
         \end{itemize}
     \end{column}
     \end{columns}
-    \vspace{1em}
+\vspace{1em}
 \begin{columns}
     \begin{column}{0.6\linewidth}
     \begin{itemize}
-        \item In finance you need risks
-        \item Simulate, do not trust point estimates
-        \item Bayes helps to take informed decisions
-    \end{itemize}        
+    \item In finance you need risks
+    \item Simulate, do not trust point estimates
+    \item Bayes helps to take informed decisions
+    \end{itemize}
     \end{column}
     \begin{column}{0.4\linewidth}
-        \includegraphics[width=\linewidth]{img/roi-plot.png}
+      \includegraphics[width=\linewidth]{img/roi-plot.png}
     \end{column}
 \end{columns}
 \end{frame}
 \begin{frame}{Case Study: AB(C) Test}
 \begin{columns}
     \begin{column}{0.5\linewidth}
-        \textbf{Challenges}
+      \textbf{Challenges}
         \begin{itemize}
-            \item Works on 50/50 samples sizes
+        \item Works on 50/50 samples sizes
             \begin{itemize}
-                \item Complicated to do 10/90
+            \item Complicated to do 10/90
             \end{itemize}
-            \item Point estimates for effect size
+          \item Point estimates for effect size
             \begin{itemize}
-                \item Hard to turn into actions
+            \item Hard to turn into actions
             \end{itemize}
-            \item Time consuming Bootstrap
+          \item Time consuming Bootstrap
             \begin{itemize}
-                \item Does not help much on small sample sizes
+            \item Does not help much on small sample sizes
             \end{itemize}
-            \item Assumes simple distributions
+          \item Assumes simple distributions
         \end{itemize}
     \end{column}
     \begin{column}{0.5\linewidth}
-        \includegraphics[width=\linewidth]{img/p-value.png}
+      \includegraphics[width=\linewidth]{img/p-value.png}
     \end{column}
 \end{columns}
 \end{frame}
@@ -302,36 +328,36 @@ Greatest insights into p-values:
     \begin{columns}
         \begin{column}[t]{0.3\linewidth}
         \begin{block}{Complex Observations}
-            Testing two hypotheses at once, Non-Normal likelihood
+          Testing two hypotheses at once, Non-Normal likelihood
         \end{block}
         \begin{itemize}
-            \item Purchase size\\
-            \includegraphics[height=1.5cm]{img/nut}
-            \item Purchase probability\\
-            \includegraphics[height=0.5cm]{img/nut}
-            \includegraphics[height=0.5cm]{img/nut}
-            \includegraphics[height=0.5cm]{img/nut}
+        \item Purchase size\\
+          \includegraphics[height=1.5cm]{img/nut}
+        \item Purchase probability\\
+          \includegraphics[height=0.5cm]{img/nut}
+          \includegraphics[height=0.5cm]{img/nut}
+          \includegraphics[height=0.5cm]{img/nut}
         \end{itemize}
         \end{column}
         \hspace{1em}
         \begin{column}[t]{0.3\linewidth}
         \begin{block}{Multiple Tests}
-            No statistical corrections
+          No statistical corrections
         \end{block}
         \begin{itemize}
-            \item Can run 3 or 10 tests!
-            \item Conduct pilot tests on small samples!
-            \item Unbalanced sample sizes are possible!
-            \item Complete the test in online mode!
+        \item Can run 3 or 10 tests!
+        \item Conduct pilot tests on small samples!
+        \item Unbalanced sample sizes are possible!
+        \item Complete the test in online mode!
         \end{itemize}
         \end{column}
         \hspace{1em}
         \begin{column}[t]{0.3\linewidth}
         \begin{block}{Unit Economics}
-            Can calculate the economic effect of implementation
+          Can calculate the economic effect of implementation
         \end{block}
         \begin{itemize}
-            \item What is the worst return on Investment?
+        \item What is the worst return on Investment?
         \end{itemize}
         \end{column}
     \end{columns}
@@ -340,39 +366,43 @@ Greatest insights into p-values:
     \begin{columns}
         \begin{column}{0.6\linewidth}
             \begin{enumerate}
-                \item Standardize the data: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
-                \item Decide on $R^2$
-                \item Decide on feature importance
-                \item Decide on effect size sign
-                \item Done
+            \item Standardize the data:
+              $a\mapsto
+              \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
+            \item Decide on $R^2$
+            \item Decide on feature importance
+            \item Decide on effect size sign
+            \item Done
             \end{enumerate}
         \end{column}
         \begin{column}{0.4\linewidth}
         \begin{figure}
-            \centering
-            \includegraphics[width=0.5\linewidth]{img/qr-linear-regressions.png}\\
-            Webinar about \\ Awesome Linear Regressions
+          \centering
+          \includegraphics[width=0.5\linewidth]{img/qr-linear-regressions.png}\\
+          Webinar about \\ Awesome Linear Regressions
         \end{figure}
-            
+
         \end{column}
     \end{columns}
     \begin{block}{Even more formulas}
-        This is a recently developed the R2D2M2 prior\cite{aguilar2023intuitive}, read more detailed math there. And PyMC implementation of the approach R2D2M2CP (the extension) \cite{pymc-experimental-r2d2m2cp}.
+      This is a recently developed the R2D2M2
+      prior\cite{aguilar2023intuitive}, read more detailed math
+      there. And PyMC implementation of the approach R2D2M2CP (the
+      extension) \cite{pymc-experimental-r2d2m2cp}.
     \end{block}
 \end{frame}
 \begin{frame}{Case Study: Marketing}
     \begin{figure}
-    \centering
-        \includegraphics[height=2cm]{img/vk-logo}
-        \includegraphics[height=2cm]{img/tiktok-logo}
-        \includegraphics[height=2cm]{img/fb-logo}
-        \includegraphics[height=2cm]{img/instagram-logo}
-        \includegraphics[height=2cm]{img/twitter-logo}\\
-        \includegraphics[height=2.5cm]{img/ads-icon}
-        \includegraphics[height=2.5cm]{img/MMM-logo}
+      \centering \includegraphics[height=2cm]{img/vk-logo}
+      \includegraphics[height=2cm]{img/tiktok-logo}
+      \includegraphics[height=2cm]{img/fb-logo}
+      \includegraphics[height=2cm]{img/instagram-logo}
+      \includegraphics[height=2cm]{img/twitter-logo}\\
+      \includegraphics[height=2.5cm]{img/ads-icon}
+      \includegraphics[height=2.5cm]{img/MMM-logo}
     \end{figure}
 \begin{block}{\textbf{M}edia \textbf{M}ix \textbf{M}odel}
-    MMM - helps to evaluate marketing channels from historical data
+  MMM - helps to evaluate marketing channels from historical data
 \end{block}
 \end{frame}
 
@@ -380,20 +410,20 @@ Greatest insights into p-values:
 \begin{columns}
     \begin{column}{0.5\linewidth}
     \begin{itemize}
-        \item Priors: Setting Customer Acquisition Costs
-        \item Structure: Acquisition costs vary
-        \item Uncertainty: Allocate budget thoughtfully 
+    \item Priors: Setting Customer Acquisition Costs
+    \item Structure: Acquisition costs vary
+    \item Uncertainty: Allocate budget thoughtfully
     \end{itemize}
     \begin{block}{Results}
         \begin{itemize}
-            \item Better understanding of channels
-            \item Efficient customer acquisition
+        \item Better understanding of channels
+        \item Efficient customer acquisition
         \end{itemize}
     \end{block}
     \end{column}
     \begin{column}{0.5\linewidth}
-        \includegraphics[width=\linewidth]{img/cac-time-varying.png}
-        \includegraphics[height=1cm]{img/pymc-labs-logo.png}\hspace{1em}\includegraphics[height=1cm]{img/hello-fresh-logo.png}
+      \includegraphics[width=\linewidth]{img/cac-time-varying.png}
+      \includegraphics[height=1cm]{img/pymc-labs-logo.png}\hspace{1em}\includegraphics[height=1cm]{img/hello-fresh-logo.png}
     \end{column}
 \end{columns}
 \end{frame}
@@ -401,18 +431,19 @@ Greatest insights into p-values:
 \begin{frame}{Case Study: Grow crops like Ceres}
     \begin{columns}
     \begin{column}{0.5\linewidth}
+        Growing crops there are open questions
     \begin{itemize}
-        \item How to optimize for fertilizer? 
-        \item How to optimize for region?
-        \item How to optimize for both?
-    \end{itemize} 
+    \item How to choose fertilizer?
+    \item How to choose region?
+    \item How to choose a combination of both?
+    \end{itemize}
     \begin{block}{Solution}
-        Extensive AB testing required
+      Extensive AB testing required
     \end{block}
     \end{column}
     \begin{column}{0.5\linewidth}
-        \includegraphics[width=0.8\linewidth]{img/Ceres.jpeg}
-        \includegraphics[height=1cm]{img/pymc-labs-logo.png}\hspace{1em}\includegraphics[height=1cm]{img/indigo-logo.png}
+      \includegraphics[width=0.8\linewidth]{img/Ceres.jpeg}
+      \includegraphics[height=1cm]{img/pymc-labs-logo.png}\hspace{1em}\includegraphics[height=1cm]{img/indigo-logo.png}
     \end{column}
 \end{columns}
 \end{frame}
@@ -421,18 +452,18 @@ Greatest insights into p-values:
     \begin{columns}
     \begin{column}{0.5\linewidth}
     \begin{itemize}
-        \item Hierarchies: Include region common effect 
-        \item Structure: Close fields interact
-        \item Predictions: Estimate yield on a new field
-    \end{itemize} 
+    \item Hierarchies: Include region common effect
+    \item Structure: Close fields interact
+    \item Predictions: Estimate yield on a new field
+    \end{itemize}
     \begin{block}{Results}
-        Established pipeline to experiment with fertilizers on the continent level
+      Established pipeline to experiment with fertilizers on the
+      continent level
     \end{block}
     \end{column}
     \begin{column}{0.5\linewidth}
-    \centering
-        \includegraphics[width=0.8\linewidth]{img/crops.jpeg}
-        \includegraphics[height=1cm]{img/pymc-labs-logo.png}\hspace{1em}\includegraphics[height=1cm]{img/indigo-logo.png}
+      \centering \includegraphics[width=0.8\linewidth]{img/crops.jpeg}
+      \includegraphics[height=1cm]{img/pymc-labs-logo.png}\hspace{1em}\includegraphics[height=1cm]{img/indigo-logo.png}
     \end{column}
 \end{columns}
 \end{frame}
@@ -440,19 +471,18 @@ Greatest insights into p-values:
 \begin{frame}{Want learn Bayes?}
     \begin{columns}
     \begin{column}{0.3\linewidth}
-    \textbf{We start October 2023}
+      \textbf{We start October 2023}
     \end{column}
     \begin{column}{0.3\linewidth}
-    \includegraphics[width=\linewidth]{img/update-your-prior.jpeg}
+      \includegraphics[width=\linewidth]{img/update-your-prior.jpeg}
     \end{column}
     \begin{column}{0.3\linewidth}
-    
+
     \end{column}
 \end{columns}
 \end{frame}
 \begin{frame}[allowframebreaks]
-        \frametitle{References}
-        \bibliographystyle{abbrv}
-        \bibliography{references.bib}
+  \frametitle{References} \bibliographystyle{abbrv}
+  \bibliography{references.bib}
 \end{frame}
 \end{document}
