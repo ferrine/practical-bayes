@@ -1,0 +1,262 @@
+\documentclass{beamer}
+\usepackage[OT2,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian,english]{babel}
+
+\usepackage{ferres}
+\framelogo{img/msu-logo}
+%math
+\input{math_commands.tex}
+\author{Максим Кочуров}
+\title[Прикладные байесовские методы]{Гауссовские процессы. Часть 2}
+\institute[МГУ]{МГУ им. М.В. Ломоносова}
+\date{Лекция 5}
+\begin{document}
+\begin{frame}
+	\maketitle
+\end{frame}
+\begin{frame}{Содержание}
+\tableofcontents
+\end{frame}
+\section{Введение}
+\begin{frame}{Временные ряды, классический подход}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Если в данных есть сезонность, обычно используют \href{https://www.statsmodels.org/devel/examples/notebooks/generated/stl_decomposition.html}{STL} декомпозицию (``\textbf{S}easonal and \textbf{T}rend decomposition using \textbf{L}oess''). Однако:
+    %If data has seasonality, you usually use \href{https://www.statsmodels.org/devel/examples/notebooks/generated/stl_decomposition.html}{STL} decomposition. However,
+    \begin{itemize}
+        \item Параметры не интерпретируемы, есть только декомпозиция%Parameters are not interpretable, only decomposition is available
+        \item Нет оценок неопределённости%No uncertainty estimates
+        %huh? \item Quite strict on input values
+        \item Недостаточная гибкость%Significantly less flexible in modelling
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/examples_notebooks_generated_stl_decomposition_6_0}
+        \caption{STL декомпозиция для данных об уровне CO2, Statsmodels}%STL decomposition for CO2 data, Statsmodels}
+    \end{figure}
+    \end{column}
+\end{columns}
+\end{frame}
+\section{Подход с гауссовскими процессами}
+\subsection{Введение}
+\begin{frame}{Декомпозиция с гауссовскими процессами}
+Гауссовские процессы поддерживают дополнительные по сравнению с STL предположения
+%A Gaussian process can handle a complicated set of assumptions in addition to what STL provides
+\begin{itemize}
+    \item Детализация сезонности (год + квартал + месяц + неделя)%Granular seasonality (year + quarter + month + week)
+    \item Модели с точками излома (changepoint). %Changepoint models
+    \item Гибкая функция правдоподобия %Flexible likelihood Function
+    \item Модели панельной регрессии %Panel regression models
+    \item Пропущенные значения %Missing values
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Типичная модель}
+Типичная модель аддитивная %Typical model is additive
+    \begin{equation*}
+        x_t \sim \underbrace{g(t)}_{\text{тренд}} + \underbrace{s(t)}_{\text{периодичность}} + \underbrace{h(t)}_{\text{праздники}}
+    \end{equation*}
+\begin{block}{Источник}
+    См. \href{https://doi.org/10.7287/peerj.preprints.3190v2}{препринт} о моделях Prophet \cite{prophet_github}. Каждая модель временного ряда уникальна.
+\end{block}
+\end{frame}
+\begin{frame}{Напоминание}
+$x \in \R^n$, $y\in\R$
+    \begin{align*}
+    Y &\sim \mathcal{GP}(\alert<3>{m(x)}, \alert<4>{k(x, x')})\\
+    \visible<2->{\begin{bmatrix} y_1 \\ \vdots \\ y_N \\ \end{bmatrix} &\sim
+\mathcal{N}\left(
+  \alert<3>{\begin{bmatrix} m(x_1)  \\\vdots\\ m(x_N)    \\ \end{bmatrix}} \,,
+  \alert<4>{\begin{bmatrix} k(x_1,x_1)    & \dots & k(x_1, x_N)    \\
+                  \vdots & \ddots& \vdots \\
+                  k(x_N, x_1) & \dots & k(x_N, x_N)  \\ \end{bmatrix}}
+        \right) \,}
+    \end{align*}
+    \begin{enumerate}
+        \item<2-> $\mathcal{GP}$ гауссовский процесс -- многомерное нормальное распределение с матожиданием $m(t)$ и ковариацией $k(x, x')$ %Gaussian Process - simply, a normal distribution with special mean $m(x)$ and covariance $k(x, x')$
+        \item<3-|alert@3> $m(x)$ -- функция среднего %mean function, e.g.
+        \begin{itemize}
+            \item Линейная регрессия: $m(x) = x^\top \beta$
+            \item Константа (в т.ч. ноль): $m(x) = c$
+            \item Произвольная функция: $m(x) = \sin(x)$
+        \end{itemize}
+        \item<4-|alert@4> $k(x, x')$ -- ядерная функция, мера сходства между $x$ и $x'$ %kernel function, simply - measure of similarity for $x$ and $x'$
+        \begin{itemize}
+            \item $[K]_{ij}=k(x_i, x_j)$ симметричная положительно определённая матрица %is an SPD matrix
+        \end{itemize}
+    \end{enumerate}
+\end{frame}
+\subsection{Непериодическая часть}
+\begin{frame}{Непериодическая часть (среднее)}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+\begin{itemize}
+    \item<alert@2> Модели роста%Growth models
+    \item<alert@3> Модели линейного тренда%Linear trend models
+    \item<alert@4> Модели с точками излома (changepoint) %Changepoint models
+\end{itemize}
+\visible<5>{
+\begin{block}{Расширения}
+    Возможны расширения, например, зависящее от времени насыщение в модели роста, см. \cite{prophet_github}.
+    %Extensions are possible, e.g. time dependent saturation in the growth model. See in \cite{prophet_github}
+\end{block}
+}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \only<2>{
+        \begin{figure}
+            \centering
+            \includegraphics[width=\linewidth]{img/growth_model}
+            \caption{Модель роста}
+        \end{figure}
+        \begin{equation*}
+            x = \frac{c}{1 + \exp(-k(t-m))}
+        \end{equation*}
+    }
+    \only<3>{
+        \begin{figure}
+            \centering
+            \includegraphics[width=\linewidth]{img/linear_trend}
+            \caption{Модель линейного тренда}
+        \end{figure}
+        \begin{equation*}
+            x = \frac{c}{1 + \exp(-k(t-m))}
+        \end{equation*}
+    }
+    \only<4->{
+        \begin{figure}
+            \centering
+            \includegraphics[width=\linewidth]{img/changepoint_model}
+            \caption{Модель с точкой излома}
+        \end{figure}
+        \begin{equation*}
+            x = \begin{cases}
+                c_1, \quad&t<m\\
+                c_2, \quad&t\ge m
+            \end{cases}
+        \end{equation*}
+    }
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Праздники}
+ \begin{equation*}
+        h(t) = \operatorname{is-holiday}(t)
+    \end{equation*}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.9\linewidth]{img/holidays}
+        \caption{Признаки выходных дней}
+    \end{figure}
+\end{frame}
+\subsection{Периодическая часть}
+\begin{frame}{Периодическая часть (ковариация)}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+        Здесь важна степень детализации. Можно использовать несколько периодических ядер.
+        %Granularities are important here. Multiple Periodic kernels can be used.
+            \begin{itemize}
+                \item год
+                \item квартал
+                \item месяц
+                \item неделя
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+        \begin{figure}
+            \centering
+            \includegraphics[width=0.75\linewidth]{img/decomposed_time_series}
+            \caption{Сезонная декомпозиция}
+        \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Масштабы длины для периодической части}
+    \begin{block}{Гиперпараметры}
+        Выбор масштаба длины на основе здравого смысла
+        %Common sense driven lenthscale choice
+    \end{block}
+    \begin{itemize}
+        \item Неделя -- динамика может измениться за пару дней ($ls\approx3$)%Week - couple of days make a change ($ls\approx3$)
+        \item Месяц -- динамика может измениться за неделю ($ls\approx7$)
+        \item Квартал -- динамика может измениться за месяц ($ls\approx30$)
+        \item Год -- динамика может измениться за квартал ($ls\approx90$)
+    \end{itemize}
+    \pause
+    \begin{alertblock}{На практике}
+        Вместо периодического ядра используют признаки Фурье (Fourier features).
+        %Everybody is using Fourier features as a replacement for Periodic Kernel
+    \end{alertblock}
+\end{frame}
+\subsection{Модель}
+\begin{frame}{Итоговая модель}
+\begin{align*}
+    m(t) &= \underbrace{g(t)}_{\text{апериодичная часть}} + \underbrace{h(t)}_{\text{выходные}}\\
+    k(*, *) &= \visible<2->{\alert<2>{\alpha_{365}}}\operatorname{Periodic}(\rp=365, \rl=90)\\
+      &+ \visible<2->{\alert<2>{\alpha_{90}}}\operatorname{Periodic}(\rp=90, \rl=30)\\
+      &+ \visible<2->{\alert<2>{\alpha_{30}}}\operatorname{Periodic}(\rp=30, \rl=7)\\
+      &+ \visible<2->{\alert<2>{\alpha_{7}}}\operatorname{Periodic}(\rp=7, \rl=3)\\
+      &\visible<3->{\alert<3>{+ \beta \operatorname{ExpQuad}(\rl=90) +\operatorname{WhiteNoise}(\gamma)}}
+\end{align*}
+\visible<2->{
+\begin{block}{Чего не хватает}
+\begin{enumerate}
+    \item<2-> Веса при периодических компонентах%Weights for periodic components
+    \item<3-> Отклонения от тренда $g(t)$%Trent violations from $g(t)$
+\end{enumerate}
+\end{block}
+}
+\end{frame}
+\subsection{Признаки Фурье}
+\begin{frame}{Более эффективная периодичность}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Некоторые оптимизации недоступны, когда в модели есть хотя бы одно периодичное ядро.
+    %Having at least one $\operatorname{Periodic}$ kernel in a large time series prevents from optimizations.
+    \begin{itemize}
+        \item Можно добавить признаки Фурье как регрессоры%Fourier features can be added as regressors
+        \item Это позволяет добавить в модель разумную периодичность%This allows reasonable periodicity to be present in the model
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/fourier-features.png}
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Выбор признаков}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    У каждого периода есть оптимальное число компонент Фурье (опрядок)
+    %Every regular period has optimal number of fourier components (aka order)
+    \begin{itemize}
+        \item неделя: 3
+        \item месяц: 10
+        \item год: 5
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/periods-order.png}
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Применение признаков Фурье}
+    \begin{itemize}
+        \item Модели типа Prophet
+        \item \emph{Очень} быстрая и доступная альтертатива гауссовским процессам%It is VERY Fast, drop-in replacement for Periodic GP
+        \item Полезны для байесовских моделей%Proven to be useful for Bayesian models
+    \end{itemize}
+    \includegraphics[width=\linewidth]{img/ff-posterior-predictive.png}
+\end{frame}
+\begin{frame}{Интеграция в модель}
+    \includegraphics[width=\linewidth]{img/fourier-features-code.png}
+\end{frame}
+\include{stoch-vol}
+\begin{frame}[allowframebreaks]
+\frametitle{Библиография}
+\bibliographystyle{abbrv}
+\bibliography{references.bib}
+\end{frame}
+\end{document}
