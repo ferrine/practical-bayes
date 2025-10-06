@@ -1,0 +1,589 @@
+\documentclass{beamer}
+\usepackage{ferres}
+\framelogo{img/msu-logo}
+%math
+\input{math_commands.tex}
+\author{Max Kochurov}
+\title[Practical Bayes: Awesome Linear Regression]{Awesome Linear Regression}
+\institute{MSU}
+\date{Lecture 6}
+\begin{document}
+\begin{frame}
+	\maketitle
+\end{frame}
+
+\begin{frame}{Agenda}
+\tableofcontents
+\end{frame}
+\section{Intuition}
+\subsection{Econometrics}
+\begin{frame}{Why linear regression is a thing}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            \begin{itemize}
+                \item Policy-making
+                \begin{itemize}
+                    \item Correlation strength
+                    \item Influence direction
+                    \item Effect size calculation
+                \end{itemize}
+                \item Part of a more complicated model
+                \begin{itemize}
+                    \item Marketing Mix Models
+                    \item AB tests
+                \end{itemize}
+            \end{itemize}
+        \begin{block}{Lego}
+            Linear regression is a common thing in all sorts of statistical models
+        \end{block}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=\linewidth]{img/linear-regression-meme.png}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+\subsection{Common representation}
+\begin{frame}{Putting notation}
+In Econometrics people got used to this notation
+    \begin{align*}
+        y \sim x_1 + x_2 + \dots + x_k
+    \end{align*}
+\begin{block}{Translation}
+    My $y$ depends linearly on $x_1$, $x_2$, ..., $x_k$
+\end{block}
+\pause
+Which also assumes constant regressor by default 
+    \begin{align*}
+        y \sim \alert<2>{1} + x_1 + x_2 + \dots + x_k
+    \end{align*}
+\pause
+And in principle means estimating $\beta$
+    \begin{align*}
+        y \sim \alert<3>{\beta_0} + \alert<3>{\beta_1}x_1 + \alert<3>{\beta_2}x_2 + \dots + \alert<3>{\beta_k}x_k
+    \end{align*}
+\end{frame}
+\begin{frame}{More than just Linear}
+$\%$ change of $x_1$ causes $\%$ change in $y$
+    \begin{align*}
+        \log y \sim \log x_1 + \dots
+    \end{align*}
+\pause
+$\%$ change of $x_1$ causes absolute change in $y$
+    \begin{align*}
+        y \sim \log x_1 + \dots
+    \end{align*}
+\pause
+absolute change of $x_1$ causes $\%$ change in $y$
+    \begin{align*}
+       \log y \sim x_1 + \dots
+    \end{align*}
+\pause
+\begin{block}{Takeouts}
+    Interpret the dependencies carefully when using logs
+\end{block}
+\end{frame}
+\subsection{GLMs}
+\begin{frame}{GLMs: Understanding Basics}
+    It is possible to use arbitrary likelihood function to \textbf{link} observations. The traditional function is like
+    \begin{align*}
+        c_i &\sim \operatorname{Binom}(p_i, n_i)\\
+        \operatorname{link}^{-1} (p_i) &\sim x_{1i} + x_{2i} + \dots + x_{ki}\\
+    \end{align*}
+\end{frame}
+\begin{frame}{Heteroscedasticity}
+    We can add more flexibility
+    \begin{align*}
+        y_i &\sim \gN(m_i, s_i)\\
+        m_i &\sim x_{i} + \dots \\
+        \log s_i &\sim z_{i}\\
+    \end{align*}
+    \pause
+    \begin{block}{Note}
+        See that $s_i$ depends on $z_i$. Such models are usually estimated using optimisation.
+    \end{block}
+\end{frame}
+\begin{frame}{Other likelihoods}
+    Even more flexibility could be achieved by changing the likelihood and relaxing assumptions
+    \begin{align*}
+        y_i &\sim \gT(\nu_i ,m_i, s_i)\\
+        m_i &\sim x_{i} + \dots \\
+        \log s_i &\sim z_{i} + \dots \\
+        \log \nu_i &\sim w_{i} + \dots  \\
+    \end{align*}
+    \pause
+    \begin{block}{Note}
+        Heteroscedastic StudentT model with variable degrees of freedom. Without regularisation estimates are very noisy
+    \end{block}
+\end{frame}
+\subsection{Limitations}
+\begin{frame}{Estimations}
+    From Econometrics we remember the Basic Maximum Likelihood estimator
+    \begin{align*}
+        \hat \beta = (X^\top X)^{-1} X^\top y
+    \end{align*}
+    \pause
+    \begin{enumerate}
+        \item What if we know that a relation is positive?
+        \item What if we know the magnitude of $\beta$ is small?
+        \item What if we know some variables are not important?
+    \end{enumerate}
+    \begin{alertblock}{Limitations}
+        Within the frequentist statistics it is impossible to use additional information
+    \end{alertblock}
+\end{frame}
+\section{Bayesian Linear Regression}
+\begin{frame}{Priors}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+        Bayesian approach is about setting priors, what are they?
+        \begin{align*}
+            y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+            \beta_j &\sim ???\\
+            c &\sim ???\\
+            \sigma & \sim ???
+        \end{align*}
+        There were introduced two parameters: $\beta$, $\sigma$
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/stars-meme.jpeg}
+    \end{column}
+\end{columns}
+\end{frame}
+\subsection{Classical Prior}
+\begin{frame}{Setting Priors}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    It is a common thing to set priors with Normal distribution
+    \begin{align*}
+            y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+            \beta_j &\sim \gN(0, 1)\\
+            c & \sim \gN(0, 1)\\
+            \sigma & \sim \gN_+(1)\qquad \text{// Half Normal}
+    \end{align*}
+    \visible<2>{\begin{alertblock}{Attention}
+        Default parameters for $\beta$ and $\sigma$ priors are dangerous 
+    \end{alertblock}}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/example-1.png}
+        \caption{Example Data}
+    \end{figure}  
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Setting Priors}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            To set priors you are advised to use prior predictive
+            \begin{align*}
+            y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+            \only<1>{
+            \beta_j &\sim \gN(0, 1)\\
+            }
+            \only<2>{
+            \beta_j &\sim \gN(0, 100)\\
+            }
+            \only<1>{
+            c & \sim \gN(0, 1)\\
+            }
+            \only<2>{
+            c & \sim \gN(0, 100)\\
+            }
+            \sigma & \sim \gN_+(1)\qquad \text{// Half Normal}
+        \end{align*}
+        \begin{alertblock}{Careful}
+            Sometimes prior predictive can go off, check the plot first and interpret
+        \end{alertblock}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \begin{figure}
+                \centering
+                \only<1>{\includegraphics[width=\linewidth]{img/example-2.png}}
+                \only<2>{\includegraphics[width=\linewidth]{img/example-3.png}}
+                \caption{Prior predictive}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{The more parameters, the bigger the issue}
+Assuming everything is independent (a priory), we can compute theoretical variances
+    \begin{align*}
+        y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+        V[y_i] &= \sum V[x_{ij}] * V[\beta_j] 
+    \end{align*}
+    Things are different when $x_i\in R^3$ and $x_i\in R^{100}$
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/dimension-var.png}
+        \caption{The more variables you include, the more variance you expect}
+    \end{figure}
+\end{frame}
+\begin{frame}{A quick Fix}
+The easy way to remove dependency on number of regressors is this
+    \begin{align*}
+        y_i &\sim \gN(c + \beta^\top x_i, \sigma)\\
+        \beta_j &\sim \textcolor{red}{\gN(0, \frac{\sigma^2_\beta}{D})}\\
+        \dots&
+    \end{align*}
+\begin{block}{Thing that usually help}
+    Standardize the data: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
+\end{block}
+\end{frame}
+\begin{frame}{A Practical Approach}
+    Standardize the data first: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
+    \begin{align*}
+            \bar y_i &\sim \gN(c + \bar \beta^\top \bar x_i, \sigma)\\
+            \bar\beta &\sim \gN(0, 1/D)\\
+            c & \sim \gN(0, 1)\\
+            \sigma & \sim \gN_+(1)
+    \end{align*}
+\begin{columns}
+    \begin{column}{0.6\linewidth}
+    \begin{enumerate}
+        \item Input/Output variance is fixed and 1
+        \item Input/Output mean is fixed and 0
+        \item Works most of the time
+        \item Hard to set $\sigma$ prior
+    \end{enumerate}
+    \end{column}
+    \begin{column}{0.4\linewidth}
+    \only<2>{
+        \begin{block}{Recovering original params}
+            $$\beta_j = \frac{\bar\beta}{\operatorname{std}(x_j)}$$
+        \end{block}
+    }
+    \end{column}
+\end{columns}
+\end{frame}
+\section{R2D2M2CP Prior}
+\subsection{Discussion}
+\begin{frame}{What we know that we know}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Setting priors is hard how can we make that easier? Let's ask questions!
+    \begin{itemize}
+        \item<2->Q: What do we know about Linear regressions?
+        \item<3->A: They have $R^2$ goodness of fit
+        \item<4->Q: Anything else?
+        \item<5->A: Some variables are more important than others
+        \item<6->A: Some variables should have positive effect size
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/questions-meme.jpeg}
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{The $R^2$ Prior}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            What is $R^2$?
+            \begin{enumerate}
+                \item Used to be goodness of fit statistics
+                \begin{itemize}
+                    \item 0 - very bad
+                    \item 1 - excellent
+                \end{itemize}
+                \item When close to 1 usually over-fit
+                \item $R^2$ - \textbf{Fraction of Variance Explained}
+            \end{enumerate}
+            
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \begin{align*}
+                R^2 &= 1-\frac{\sigma_r^2}{\sigma_T^2}\\
+                FVU &= \frac{\sigma_r^2}{\sigma_T^2}
+            \end{align*}
+        \begin{itemize}
+            \item $\sigma_r^2$ - residual variance
+            \item $\sigma_T^2$ - total variance
+            \item $FVU$ - \textbf{F}raction \textbf{V}ariance \textbf{U}nexplained
+        \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+\subsection{$R^2$ prior}
+\begin{frame}{Setting $R^2$ Prior}
+    \begin{columns}
+    \begin{column}{0.5\linewidth}
+         $R^2$ prior is very intuitive to say about before any data is fit.
+         \begin{itemize}
+             \item $R^2<0.5$ -- field experiments, noisy data
+             \item $0.5<R^2<0.75$ -- field experiments, clean data
+             \item $0.75<R^2<0.90$ -- lab experiments, noisy data
+             \item $R^2>0.90$ -- lab experiments, clean data
+         \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \includegraphics[width=\linewidth]{img/r2-results.png}
+    \end{column}
+    \end{columns}
+    \includegraphics[width=\linewidth]{img/r2-range.png}
+\end{frame}
+\begin{frame}{Prior $R^2$}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+        \begin{itemize}
+            \item What is the quality of your data?
+            \item Do you have all factors to explain data?
+            \item Is your data collection method accurate?
+        \end{itemize}
+        \begin{align*}
+            R^2\sim \operatorname{Beta}(\mu=\tilde\mu_{r}, \sigma=\tilde\sigma_r)
+        \end{align*}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \includegraphics[width=\linewidth]{img/r2-prior.png}
+    \end{column}
+\end{columns}
+    \begin{block}{Note}
+    This is different from \href{https://avehtari.github.io/bayes_R2/bayes_R2.html}{Bayesian $R^2$}. \textbf{Prior} $R^2$ is \textbf{your expectation} about model quality.
+    \end{block}
+\end{frame}
+\begin{frame}{Feel the Difference}
+\begin{columns}
+    \begin{column}[t]{0.5\linewidth}
+    How it was
+        \begin{itemize}
+            \item How to set prior for $\beta$?
+            \item What does this prior mean?
+            \item Oh, I should change prior if I add parameters
+            \item How to set prior for $\sigma$?
+            \item Too complicated, where are the defaults?
+            \item Ah, defaults do not make any sense
+        \end{itemize}
+    \end{column}
+    \begin{column}[t]{0.5\linewidth}
+    How it is gonna be
+        \begin{itemize}
+            \item How good is the model expected? The $R^2$
+            \item Which variable is more or less important?
+            \item What is the expected direction of influence for variables?
+        \end{itemize}
+    \end{column}
+\end{columns}
+\end{frame}
+\subsection{Variable importance}
+\begin{frame}{Variable importance}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            You predict salary, 
+            \begin{itemize}
+                \item is Age or Education more important?
+                \item is Education or Experience more important?
+            \end{itemize}
+            In traditional models you can only figure out post factum
+            \visible<2>{
+            \begin{block}{Bayesian approach}
+                \begin{itemize}
+                    \item Set expectations on how features are important
+                    \item Bayesian Instrumental Variables
+                \end{itemize}
+            \end{block}
+            }
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \includegraphics[width=\linewidth]{img/grapg.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{What is variable importance?}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            There are several approaches
+            \begin{itemize}
+                \item Amount of information gain
+                \item<alert@2> \textbf{F}raction of \textbf{V}ariance \textbf{E}xplained
+            \end{itemize}
+            \visible<2->{
+            \begin{block}{Use same idea!}
+                Similar to $R^2$ we can set \textbf{FVE} per feature
+            \end{block}}
+            \visible<3->{
+            A simple idea
+            \begin{align*}
+                \phi_\text{FVE}\sim \operatorname{Dirichlet}(\alpha_{\text{FVE}})
+            \end{align*}}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \includegraphics[width=\linewidth]{img/education-bar.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Understanding FVE Prior}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            We need to understand the Dirichlet distribution
+            \begin{align*}
+                \phi_\text{FVE}\sim \operatorname{Dirichlet}(\alpha_{\text{FVE}})
+            \end{align*}
+            \begin{itemize}
+                \item The higher $\alpha_i$ the more variable $i$ is important
+                \item The higher $\alpha_i$ the more confidence is put into importance
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \includegraphics[width=\linewidth]{img/dirichlet.jpg}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{$\alpha_{\text{FVE}}$ in Examples}
+    \begin{align*}
+        \phi_\text{FVE}\sim \operatorname{Dirichlet}(\alpha_{\text{FVE}})
+    \end{align*}
+    \begin{itemize}
+        \item $\alpha_{\text{FVE}} = (1, 1, 1)$ - I know nothing about importances, maybe some variables are not used
+        \item $(\alpha_{\text{FVE}})_i=1$ - variable might not be used or be very imporant, no clue
+        \item $(\alpha_{\text{FVE}})_i=10$ - variable should be probably used
+        \item $(\alpha_{\text{FVE}})_i=20$ - variable is definitely used
+        \item $\alpha_{\text{FVE}} = (10, 20, 30)$ - All variables are used, but 2d and 3d are increasingly more important
+    \end{itemize}
+    \pause
+    \begin{block}{Disclaimer}
+        Yes, this is the most handwavy interpretation ever
+    \end{block}
+\end{frame}
+\begin{frame}{$\alpha_{\text{FVE}}$ and $R^2$}
+\begin{align*}
+    \phi_\text{FVE} &\sim \operatorname{Dirichlet}(\tilde\alpha_{\text{FVE}})\\
+    R^2 & \sim \operatorname{Beta}(\mu=\tilde\mu_{r}, \sigma=\tilde\sigma_r)
+\end{align*}
+    What you decide
+    \begin{enumerate}
+        \item How good is the model in principle? ($R^2$)
+        \item How good is every given feature ($\tilde\alpha_{\text{FVE}}$)
+    \end{enumerate}
+\end{frame}
+\subsection{R2D2M2}
+\begin{frame}{Putting all together}
+    \begin{columns}
+        \begin{column}{0.6\linewidth}
+            \begin{enumerate}
+                \item Standardize the data: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
+                \item Decide on $R^2$
+                \item Decide on feature importance
+                \item Done
+            \end{enumerate}
+        \end{column}
+        \begin{column}{0.4\linewidth}
+            \begin{align*}
+            \bar y_i &\sim \gN(\bar\beta^\top\bar x_i, \sigma)\\
+            \phi_\text{FVE} &\sim \operatorname{Dirichlet}(\tilde\alpha_{\text{FVE}})\\
+            R^2 & \sim \operatorname{Beta}(\mu=\tilde\mu_{r}, \sigma=\tilde\sigma_r)\\
+            \sigma^2 &= 1-R^2\\
+            \bar\beta &\sim \gN(0, \sqrt{\phi_\text{FVE}\cdot R^2})
+        \end{align*}
+        \end{column}
+    \end{columns}
+    \begin{block}{Even more formulas}
+        This is a recently developed the R2D2M2 prior\cite{aguilar2023intuitive}, read more detailed math there.
+    \end{block}
+\end{frame}
+\subsection{Correlation Probability}
+\begin{frame}{Can we Add More? R2D2M2\textcolor{red}{CP}}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            Yes, yes and yes!
+            \begin{itemize}
+                \item "What is the sign of correlation?"
+                \item "How I'm sure correlation is positive?"
+            \end{itemize}
+            \pause
+            The solution I propose:
+            \begin{align*}
+                P(\bar \beta_j > 0) = (\psi_{CP})_j\\
+                \psi_{CP} \sim \operatorname{Beta}(\mu=\mu_{CP},\sigma=\sigma_{CP})
+            \end{align*}    
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \includegraphics[width=\linewidth]{img/r2m2d2cp.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Technical Details}
+    \begin{align*}
+        P(\bar \beta_j > 0) &= (\psi_{CP})_j\\
+        \bar \beta &\sim \gN (
+        \textcolor{red}{\mu_{CP}(\psi_{CP}, R^2\cdot \phi_\text{FVE})},
+        \textcolor{red}{\sigma_{CP}(\psi_{CP}, R^2\cdot \phi_\text{FVE})}
+        )\\
+        \psi_{CP} &\sim \operatorname{Beta}(\mu=\mu_{CP},\sigma=\sigma_{CP})\\
+        \phi_\text{FVE} &\sim \operatorname{Dirichlet}(\tilde\alpha_{\text{FVE}})\\
+            R^2 & \sim \operatorname{Beta}(\mu=\tilde\mu_{r}, \sigma=\tilde\sigma_r)\\
+    \end{align*}
+    \begin{block}{$\mu_{CP}$, $\sigma_{CP}$ solution is unique}
+    \begin{equation*}
+        \begin{cases}
+            \mu_{CP}(p, v)=\frac{\sqrt{2v} \operatorname{erf}^{-1}(2 p-1)}{\sqrt{2 \operatorname{erf}^{-1}(2 p-1)^2+1}}\\
+            \sigma_{CP}(p, v)=\frac{\sqrt{v}}{\sqrt{2 \operatorname{erf}^{-1}(2 p-1)^2+1}}
+        \end{cases}
+    \end{equation*}
+    \end{block}
+\end{frame}
+\begin{frame}{Putting all Together}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            To use R2D2M2CP prior decide on
+            \begin{enumerate}
+                \item Standardize the data: $a\mapsto \frac{a-\operatorname{mean}(a)}{\operatorname{std}(a)}$
+                \item Decide on $R^2$
+                \item Decide on feature importance
+                \item Decide on correlation direction
+                \item Done, like never before!
+            \end{enumerate}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            A practical implementation is merged\cite{pymc-experimental-r2d2m2cp}
+            \begin{figure}
+                \centering
+                \includegraphics[width=0.5\linewidth]{img/pymc-logo}
+            \end{figure}
+            \url{https://github.com/pymc-devs/pymc-experimental/pull/137}
+        \end{column}
+    \end{columns}
+\end{frame}
+\section{Advanced GLMs}
+\begin{frame}{Back to GLMs}
+    Consider this model blueprint:
+    \begin{align*}
+        y_i &\sim \gT(\nu_i ,m_i, s_i)\\
+        m_i &\sim x_{i}+ \dots \\
+        \log s_i &\sim z_{i} + \dots
+    \end{align*}
+    \begin{itemize}
+        \item<2-> Which factors contribute sigma $s$? (variable importance guess)
+        \item<3-> Do they even contribute? ($R^2$ guess)
+    \end{itemize}
+    \pause
+    \begin{block}{Prior for Nu}
+        Degrees of freedom can be considered with a special prior: \url{https://github.com/pymc-devs/pymc-experimental/pull/252}
+    \end{block}
+\end{frame}
+\section{Conclusion}
+\begin{frame}{Remarks}
+    \begin{columns}
+        \begin{column}{0.65\linewidth}
+            \begin{itemize}
+                \item The R2D2M2CP prior is hard to pronounce
+                \item Can extend thinking for the traditional linear models
+                \item Goes beyond to GLMs for granular control of auxiliary models 
+                \item Application for GAMs mix with GPs is something to also explore
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.35\linewidth}
+            \includegraphics[width=\linewidth]{img/r2m2d2cp-glm-meme.jpeg}
+        \end{column}
+    \end{columns}
+    
+\end{frame}
+\begin{frame}[allowframebreaks]
+        \frametitle{References}
+        \bibliographystyle{abbrv}
+        \bibliography{references.bib}
+\end{frame}
+\end{document}

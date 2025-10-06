@@ -1,0 +1,769 @@
+\documentclass{beamer}
+\usepackage{ferres}
+\usepackage{caption}
+\usepackage{subcaption}
+\framelogo{img/msu-logo}
+
+%math
+\input{math_commands.tex}
+\author{Max Kochurov}
+\title[Practical Bayes - Bayesian Modeling]{Bayesian Modeling}
+\institute[MSU]{Moscow State University}
+\date{Lecture 2}
+\begin{document}
+\begin{frame}
+	\maketitle
+\end{frame}
+\begin{frame}{Agenda}
+\tableofcontents
+\end{frame}
+\section{HMC}
+\begin{frame}{Sampling from a distribution}
+    \begin{columns}[t]
+    \begin{column}{0.5\linewidth}
+    Conjugate models
+    \begin{itemize}
+        \item Limited set of applications
+        \item Lack of flexibility
+        \item They are scalable
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.7\linewidth]{img/normal-distribution}
+        \caption{Easy distribution}
+    \end{figure}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    Most models
+    \begin{itemize}
+        \item No closed form solution
+        \item Posterior distributions is complicated
+        \item Less scalable
+        \item Flexible
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.7\linewidth]{img/zigzag-distribution}
+        \caption{Complicated distribution}
+    \end{figure}
+    \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Hamiltonian Monte Carlo Intuition}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+HMC samples from a complicated distribution
+\begin{enumerate}
+    \item Ideas from physics
+    \item Requires gradient
+    \item Requires numerical integration
+\end{enumerate}
+Tuned HMC converges to the target distribution
+\begin{alertblock}{Warning}
+I promised a not math heavy course. But this is important for debugging your models.
+\end{alertblock}
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/funnel_leapfrog}
+    \caption{Leapfrog Integration}
+    \label{fig:my_label}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{HMC Distributions}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\begin{itemize}
+    \item $p(\Theta)$ - Target distribution, $\Theta \in \sR^d$ ($\Theta$ aka \textbf{Position})
+    \item $p(\Delta\cond\Theta)$ - Momentum distribution, $\Delta \in \sR^d$ \\($\Delta$ aka \textbf{Velocity})
+\end{itemize}
+Hamiltonian
+\begin{equation*}
+ H(\Delta, \Theta) = -\log p(\Delta, \Theta)   
+\end{equation*}
+\begin{block}{Notes}
+\begin{itemize}
+    \item $p(\Delta\cond\Theta) = \operatorname{Normal}(0, M)$, usually a Normal distibution
+    \item $\Delta$ and $\Theta$ have same dimensions
+\end{itemize}
+
+\end{block}
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/normal-histogram}
+    \caption{$p(\Theta) = \operatorname{Normal}(0, 1)$}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{HMC Differential Equation}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\begin{align*}
+    H(\Delta, \Theta) &= -\log p(\Delta, \Theta)\\
+    &=-\log p(\Delta\cond\Theta) &-\log p(\Theta)\\
+    &=\underbrace{K(\Delta, \Theta)}_{\text{Kinetic E}} &+  \underbrace{V(\Theta)}_{\text{Potential E}}
+\end{align*}
+The Physical \textbf{motion} equation
+\begin{align*}
+    \frac{\partial \Theta}{\partial t} &= \frac{\partial H}{\partial \Delta}\\
+    \frac{\partial \Delta}{\partial t} &= -\frac{\partial H}{\partial \Theta}
+\end{align*}
+\textbf{Motion} preserves total energy $H(\Delta, \Theta)$
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/scateboard}
+    \caption{HMC analogy to skateboarding}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{HMC Divergences}
+A divergence is a huge integration error solving the differential equation.
+    \begin{alertblock}{When HMC Fails}
+    Bad geometry for Hamiltonian
+    \end{alertblock}
+Bad geometry comes from a lot of things
+\begin{columns}[t]
+\begin{column}{0.5\linewidth}
+\begin{enumerate}
+    \item Strong correlations
+    \item Narrow funnels in the posterior
+    \item Strong likelihood
+    \item Non homogeneous posterior 
+\end{enumerate}
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\linewidth]{img/funnel_1}
+    \caption{Neal's Funnel}
+\end{figure}
+\end{column}
+\end{columns}
+
+\end{frame}
+\begin{frame}{HMC Reading Materials}
+    \begin{alertblock}{Advanced Reading}
+\begin{enumerate}
+    \item Interactive \href{https://chi-feng.github.io/mcmc-demo/app.html}{Demo}
+    \item A \href{https://colindcarroll.com/2019/04/11/hamiltonian-monte-carlo-from-scratch/}{tutorial} from Colin Carroll
+    \item A \href{https://arxiv.org/abs/1701.02434}{paper} from Michael Betancourt
+    \item NUTS \href{https://arxiv.org/abs/1111.4246}{paper} from Matthew D. Hoffman, Andrew Gelman
+\end{enumerate}
+\end{alertblock}
+\end{frame}
+\section{Cobb-Douglas model}
+\begin{frame}{}
+    \centering \Huge Example
+\end{frame}
+
+\begin{frame}{Toy example - Cobb-Douglas}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+You should all know the Cobb-Douglas function
+\begin{equation*}
+    Y \approx A \cdot L ^ \beta
+\end{equation*}
+In our example:
+\begin{enumerate}
+    \item data has 6 groups (hierarchical)
+    \item We know the groups
+    \item We know the total factor productivity $A$ is different per group (different equipment)
+    \item Labour productivity $\beta$ does not differ much
+\end{enumerate}
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/example-cobb-douglas-pooled}
+    \caption{Example Data (aggregated)}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Toy example - Carpet Knitters}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+Let's put more interpretation in the example
+\begin{equation*}
+    Y_g \approx A_g \cdot L ^ \beta
+\end{equation*}
+In our example we have a carpet manufacturing plant with 6 workers:
+\begin{enumerate}
+    \item Workers make different carpets, thus have total factor productivity $A$
+    \item Labour productivity $\beta$ is like concentration, the more you work the less productive you are
+    \item Workers produce carpets individually
+\end{enumerate}
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/carpet-photo}
+    \caption{Example Y}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{The Simpson Paradox}
+    \begin{figure}
+    \centering
+        \begin{subfigure}[l]{0.45\linewidth}
+             \centering
+             \includegraphics[width=\linewidth]{img/example-cobb-douglas-pooled-reg}
+         \end{subfigure}
+         \begin{subfigure}[r]{0.5\linewidth}
+             \centering
+             \includegraphics[width=\linewidth]{img/example-cobb-douglas-reg}
+         \end{subfigure}
+    \end{figure}
+\end{frame}
+\section{First model}
+\subsection{Setup}
+\begin{frame}{One group model}
+    Best practices when you start.
+    \begin{itemize}
+        \item Start with a most simple model
+        \visible<2->{
+        \begin{itemize}
+            \item You have groups, start with one
+            \item Make sure priors are well specified, do checks
+        \end{itemize}
+        }
+        \item Make sure simple model converges well
+        \visible<3->{
+        \begin{itemize}
+            \item If one group model fails, all fail
+            \item There are simple checks to verify your model samples well
+        \end{itemize}
+        }
+        \item Write a more complex model
+        \visible<4->{
+        \begin{itemize}
+            \item Try several parametrizations
+            \item Check how model samples
+            \item Compare models (out of scope for now)
+        \end{itemize}
+        }
+    \end{itemize}
+\end{frame}
+\subsection{Priors}
+\begin{frame}{Starting with a simple model}
+    To get an idea why we start simple
+    \begin{equation*}
+    Y_{g=0} \approx A_{g=0} \cdot L ^ \beta
+\end{equation*}
+\begin{enumerate}
+    \item What is prior for $A$?
+    \item What is prior for $\beta$?
+    \item What is prior predictive for $Y_{g=0}$?
+\end{enumerate}
+\end{frame}
+\begin{frame}{Writing a model}
+    \begin{align*}
+        Y_{g=0} &\approx A_{g=0} \cdot L ^ \beta\\
+        \log Y_{g=0} &\approx \log A_{g=0} + \log L \cdot \beta\\
+    \end{align*}
+    Introducing distributions
+    \begin{align*}
+        \log Y_{g=0} &\sim \operatorname{Normal}(\log A_{g=0} + \log L \cdot \beta, \eps)\\
+        \eps &\sim \text{???}\\
+        \beta &\sim \text{???}\\
+        A_{g=0} &\sim \text{???}\\
+    \end{align*}
+\end{frame}
+\begin{frame}{Prior for $\beta$}
+    What is a reasonable prior for labour productivity (elasticity) $\beta$? Questions to ask yourself
+    \begin{enumerate}
+        \item Can it be $<0$? \visible<2->{No}
+        \item Can it be large? \visible<3->{No}
+        \item Can it be $>1$? \visible<4->{No}
+    \end{enumerate}
+    \visible<5->{Conclusion: It is bounded by $(0, 1)$
+    \begin{block}{The prior is subjective!}
+    Who can argue these bounds do not make sense?
+    \end{block}}
+    \visible<6->{
+    \begin{alertblock}{Not yet a prior}
+    To get a prior we need a distribution that fits the reasoning
+    \end{alertblock}}
+\end{frame}
+\begin{frame}{Prior for $\beta$}
+    What we know: 
+    \begin{itemize}
+        \item $\beta \in (0, 1)$
+        \item Less probable to be close to the boundary
+        \item Nothing specific about exact value in the range.
+    \end{itemize}
+\begin{block}{In the mind}
+Enumerate possible distributions that fit the reasoning
+\end{block}
+\begin{enumerate}
+    \item<2-> $\operatorname{Beta}(a, b),\; a>0, b > 0$ with some $a, b$ avoids boundaries
+    \item<3-> $\operatorname{LogitNormal}(\mu, \sigma)$ - always avoids boundaries
+    \item<4-> $\operatorname{Uniform}(0, 1)$ - a special case of $\operatorname{Beta}(1, 1)$
+    \item<5-> $\operatorname{Kumaraswamy}(a, b),\; a>0, b > 0$ you do not need to know that
+\end{enumerate}
+\end{frame}
+\begin{frame}{Visualize your prior}
+Before writing a line of code, visualise your prior. What do you like more?
+\begin{figure}
+    \centering
+    \includegraphics[width=.6\linewidth]{img/priors-beta}
+    \caption{Visualized Priors}
+\end{figure}
+You can choose the form with theory in mind
+\end{frame}
+\begin{frame}{Setting a prior}
+    I prefer $\operatorname{LogitNormal}(0, 1)$ in this situation. It has a good functional form.
+    \begin{block}{To remember}
+    \begin{itemize}
+        \item Prior is \textbf{your} modelling choice
+        \item The choice has to be motivated
+        \item The choice should make sense given practical constraints
+        \item You should always be able to defend your choice
+        \item \textbf{Prior is what you do not know, the uncertainty}
+    \end{itemize}
+    \end{block}
+\end{frame}
+\begin{frame}{The model so far}
+    \begin{align*}
+        \log Y_{g=0} &\sim \operatorname{Normal}(\log A_{g=0} + \log L \cdot \beta, \eps)\\
+        \eps &\sim \text{???}\\
+        \beta &\sim \operatorname{LogitNormal}(0, 1)\\
+        A_{g=0} &\sim \text{???}\\
+    \end{align*}
+\end{frame}
+\begin{frame}{Prior for $\eps$}
+    \begin{block}{Rule of thumb}
+    Error term is something small. Usually avoids zero.
+    \end{block}
+    \begin{columns}
+    \begin{column}{0.5\linewidth}
+    In our case;
+    \begin{itemize}
+        \item small is "orders of 10-50\%"
+    \end{itemize}
+    Let it be
+    \begin{equation*}
+        \eps \sim \operatorname{LogNormal}(-2, 1)
+    \end{equation*}
+    \visible<2->{
+    \begin{block}{Useful}
+        In log-log models error term is on the relative scale
+    \end{block}
+    }
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/priors-e}
+        \caption{Prior for $\eps$}
+    \end{figure}
+    \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{The model so far}
+    \begin{align*}
+        \log Y_{g=0} &\sim \operatorname{Normal}(\log A_{g=0} + \log L \cdot \beta, \eps)\\
+        \eps &\sim \operatorname{LogNormal}(-2, 1)\\
+        \beta &\sim \operatorname{LogitNormal}(0, 1)\\
+        A_{g=0} &\sim \text{???}\\
+    \end{align*}
+\end{frame}
+\begin{frame}{Visual Model}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/graphviz-model-simple}
+        \caption{Graphviz Model}
+    \end{figure}
+\end{frame}
+\begin{frame}{Prior Predictive}
+    Prior for $\beta$ was an easy one. We need one for $A_{g=0}$
+    \begin{itemize}
+        \item<2-> No idea what the prior should be
+        \item<3-> We have an idea about $Y$
+        \item<4-> $Y$ is positive, thus $A$ is positive
+        \item<5-> We have practical range for $Y$, can we infer $A$ at a glance?
+        \item<6-> Order of 10s for $Y$ makes sense
+        \item<7-> Prior predictive can help
+    \end{itemize}
+    \visible<8->{
+    \begin{block}{Definition}
+    Prior predictive is simulated observation model given no data. 
+    \end{block}
+    \begin{alertblock}{The truth}
+    Nobody said setting priors is easy. It is the most work.
+    \end{alertblock}
+    }
+\end{frame}
+\begin{frame}{Random prior}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+Why not using e.g.
+\begin{equation*}
+    A \sim \operatorname{LogNormal}(0, 1)
+\end{equation*}
+\visible<2->{
+\begin{alertblock}{Nonsense}
+Workers do not produce 800 carpets per week.
+\end{alertblock}}
+\end{column}
+\begin{column}{0.5\linewidth}
+\visible<2->{That's why
+\begin{figure}
+   \centering
+   \includegraphics[width=\linewidth]{img/prior-predictive-cobb-douglas}
+   \caption{Prior predictive for Y vs data}
+\end{figure}}
+\end{column}
+\end{columns}
+\end{frame}
+\section{Prior Predictive Check}
+\begin{frame}{Analysing the prior predictive}
+    \begin{columns}
+\begin{column}{0.6\linewidth}
+Getting back to a full model 
+\begin{align*}
+    \log Y_{g=0} &\sim \operatorname{Normal}(\log A_{g=0} + \log L \cdot \beta, \eps)\\
+    \eps &\sim \operatorname{LogNormal}(-2, 1)\\
+    \beta &\sim \operatorname{LogitNormal}(0, 1)\\
+    A_{g=0} &\sim \operatorname{LogNormal}(0, 1)
+\end{align*}
+\begin{itemize}
+    \item We see over dispersion in predictions
+    \item Variance may come from $A$ or $\eps$
+\end{itemize}
+\begin{block}{Actions}
+\begin{enumerate}
+    \item Try reducing $A$ variance
+    \item Try reducing $\eps$ variance
+\end{enumerate}
+\end{block}
+\end{column}
+\begin{column}{0.4\linewidth}
+What can we read here?
+\begin{figure}
+   \centering
+   \includegraphics[width=\linewidth]{img/prior-predictive-cobb-douglas}
+   \caption{Prior predictive for Y vs data}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Good prior predictive}
+\begin{columns}
+    \begin{column}{0.6\linewidth}
+    \begin{block}{Seminar}
+    You will play with the example at the seminar.
+    \end{block}
+    A good looking prior predictive was with the definition below
+    \begin{align*}
+        \log Y_{g=0} &\sim \operatorname{Normal}(\log A_{g=0} + \log L \cdot \beta, \eps)\\
+        \eps &\sim \operatorname{LogNormal}(-2, 0.1)\\
+        \beta &\sim \operatorname{LogitNormal}(0, 1)\\
+        A_{g=0} &\sim \operatorname{LogNormal}(-0.5, 0.1)\\
+    \end{align*}
+    \end{column}
+    \begin{column}{0.4\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/prior-predictive-cobb-douglas-good}
+        \caption{Prior predictive for Y vs data}
+    \end{figure}
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{What is a good prior predictive?}
+\begin{columns}
+\begin{column}{0.6\linewidth}
+\begin{itemize}
+    \item Prior predictive covers \textbf{reasonable} range for observed data.
+    \visible<2->{
+    \begin{itemize}
+        \item no astronomic speeds
+        \item no microscopic distances
+        \item no black hole densities
+        \item no superpower workers
+    \end{itemize}
+    }
+    \item \textbf{Data is reference}, not your objective.
+    \visible<3->{%
+    \begin{itemize}
+        \item do not overfit priors on data.
+        \item in 90\% cases you do not need data for prior predictive
+        \item in 90\% cases common sense should work just fine
+        \item in 10\% cases you can ask experts and adjust the priors
+        \item data is your last resort
+    \end{itemize}
+    }
+\end{itemize}
+\end{column}
+\begin{column}{0.4\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/prior-predictive-cobb-douglas-good}
+    \caption{Prior predictive for Y vs data}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{HMC in action}
+    \centering\includegraphics[width=0.5\linewidth]{img/big-red-button}
+\end{frame}
+\begin{frame}{Sampling}
+\begin{columns}
+\begin{column}{0.3\linewidth}
+After we've checked the priors it is time to sample.
+\end{column}
+\begin{column}{0.7\linewidth}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/example-cobb-douglas-trace}
+    \caption{Posterior MCMC trace}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+\section{Hierarchies}
+\subsection{Intro}
+\begin{frame}{}
+    \centering \Huge Hierarchies
+\end{frame}
+\begin{frame}{Hierarchies}
+Initial data has groups. How to take them in account?
+\begin{align*}
+        \log Y_{\textbf{g}} &\sim \operatorname{Normal}(\log A_{\textbf{g}} + \log L \cdot \beta, \eps)\\
+        \eps &\sim \operatorname{LogNormal}(-2, 0.1)\\
+        \beta &\sim \operatorname{LogitNormal}(0, 1)\\
+        A_{\textbf{g}} &\sim \text{???}\\
+    \end{align*}
+\end{frame}
+\begin{frame}{What is Hierarchy?}
+    \begin{block}{Hierarchy}
+    Once you have similar groups in your data, you have hierarchy.
+    \end{block}
+    Examples:
+    \begin{enumerate}
+        \item Countries, Regions
+        \item User groups: by age, by profession, etc
+        \item Treatment groups
+        \item Time dependent effects
+        \item Panel Data
+    \end{enumerate}
+    \begin{block}{Our Example}
+    Workers make different carpets and have total factor
+productivity $A$
+    \end{block}
+\end{frame}
+\begin{frame}{Treating Hierarchy}
+Classical Econometrics view:
+    \begin{enumerate}
+        \item All the groups are independent. \textbf{Pooled Model}
+\begin{equation*}
+    y_{k,i} = \alpha + \beta x_{k,i} + \varepsilon_{i,k}
+\end{equation*}
+        \item Groups have significant differences. \textbf{Fixed Effect Model}
+\begin{equation*}
+    y_{k,i} = \alpha_{k} + \beta x_{k,i} + \varepsilon_{i,k}
+\end{equation*}
+        \item Groups have non significant, random differences. \textbf{Random Effects Model}
+\begin{equation*}
+    y_{k,i} = \alpha + \beta x_{k,i} + u_{k} + \varepsilon_{i,k}
+\end{equation*}
+    \end{enumerate}
+Where
+\begin{equation*}
+    \E u_{k,i} = 0,\quad \E \varepsilon_{k,i} = 0
+\end{equation*}
+\end{frame}
+\subsection{Bayesian}
+\begin{frame}{Bayesian Hierarchy}
+In
+\begin{equation*}
+    y_{k,i} = \alpha + \beta x_{k,i} + u_{k} + \varepsilon_{i,k}
+\end{equation*}
+Let's rearrange terms
+\begin{equation*}
+    y_{k,i} = (\alpha + u_{k}) + \beta x_{k,i} + \varepsilon_{i,k}
+\end{equation*}
+\begin{itemize}
+    \item $\alpha$ - population mean
+    \item $\alpha_k = \alpha + u_k$ - group mean
+\end{itemize}
+In a Bayesian analysis we need priors. There is more than one way
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\begin{align*}
+    \alpha &\sim \operatorname{Normal}(\bar\mu, \bar\sigma)\\
+    u_k &\sim \operatorname{Normal}(0, 1)\\
+    \alpha_k & = \alpha + u_k \cdot \sigma
+\end{align*}
+\end{column}
+\begin{column}{0.5\linewidth}
+\begin{align*}
+    \alpha &\sim \operatorname{Normal}(\bar\mu, \bar\sigma)\\
+    \alpha_k &\sim \operatorname{Normal}(\alpha, \sigma)
+\end{align*}
+\end{column}
+\end{columns}
+\end{frame}
+\subsection{Parametrizations}
+\begin{frame}{More on priors}
+\begin{columns}[t]
+\begin{column}{0.5\linewidth}
+Non centered parametrization
+\begin{align*}
+    \alpha &\sim \operatorname{Normal}(\bar\mu, \bar\sigma)\\
+    u_k &\sim \operatorname{Normal}(0, 1)\\
+    \alpha_k & = \alpha + u_k \cdot \sigma
+\end{align*}
+Group specific parameter $u_k$ is disentangled
+\end{column}
+\begin{column}{0.5\linewidth}
+Centered parametrization
+\begin{align*}
+    \alpha &\sim \operatorname{Normal}(\bar\mu, \bar\sigma)\\
+    \alpha_k &\sim \operatorname{Normal}(\alpha, \sigma)
+\end{align*}
+\end{column}
+\end{columns}
+\vspace{1em}
+$\sigma$ is a measure of group differences
+\begin{enumerate}
+    \item $\sigma \to 0$: Pooled Model
+    \item Small $\sigma$: Random Effects / Partial Pooling
+    \item Large $\sigma$: Fixed Effects / Unpooled Model
+\end{enumerate}
+$\sigma$ interpolates between the models
+\end{frame}
+
+\begin{frame}{Degeneracy}
+    \begin{columns}
+    \begin{column}{0.5\linewidth}
+    Centered parametrization
+\begin{align*}
+    \alpha &\sim \operatorname{Normal}(\bar\mu, \bar\sigma)\\
+    \alpha_k &\sim \operatorname{Normal}(\alpha, \sigma)
+\end{align*}
+\begin{alertblock}{Warning}
+Centered parametrization creates funnel geometry with few data
+\end{alertblock}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/funnel}
+        \caption{Divergences appear in the Centered Parametrization}
+        \label{fig:my_label}
+    \end{figure}
+    \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Why Funnel is created?}
+    \begin{columns}
+    \begin{column}{0.5\linewidth}
+    Geometry is important
+    \begin{enumerate}
+        \item Sampler has adaptive step size
+        \item With bad geometry Sampler can't find a good one
+    \end{enumerate}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.9\linewidth]{img/funnel_1}
+        \caption{Funnel Geometry}
+    \end{figure}
+    \end{column}
+    \end{columns}
+\begin{block}{Suggested reading}
+Read more on reparametrization in \href{https://mc-stan.org/docs/2_18/stan-users-guide/reparameterization-section.html}{Stan's Guide}
+\end{block}
+\end{frame}
+\begin{frame}{Inverted Funnel degeneracy}
+    A "nice" parametrization does have issues as well.
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.55\linewidth]{img/inverted_funnel}
+        \caption{Inverted Funnel Degeneracy}
+    \end{figure}
+\begin{alertblock}{Advanced Reading}
+Read more from \href{https://betanalpha.github.io/assets/case_studies/hierarchical_modeling.html}{Michael Betancourt}
+\end{alertblock}
+\end{frame}
+\subsection{Priors}
+\begin{frame}{Setting a Hierarchical Prior}
+    \begin{enumerate}
+        \item Start with a Pooled or Single group model
+        \visible<2->{
+        \begin{itemize}
+            \item You get an idea of prior parameter scales
+            \item You get a decent model structure
+            \item Do not care about predictions
+        \end{itemize}
+        }
+        \item Add Hierarchy
+        \visible<3->{
+        \begin{itemize}
+            \item Decide on which parameters to share
+            \item Decide on allowed variability for the rest parameters
+            \item Debug divergences, reparametrize if required
+        \end{itemize}
+        }
+    \end{enumerate}
+\visible<4>{
+\begin{block}{Best Practice}
+Do not hard-code the parametrization, toggle it in the code
+\end{block}
+}
+\end{frame}
+\begin{frame}{The Cobb-Douglas Case}
+    \begin{columns}[t]
+    \begin{column}{0.5\linewidth}
+    Single group model
+     \begin{align*}
+        \log Y_0 &\sim \operatorname{Normal}(\log A_0 + \log L \cdot \beta, \eps)\\
+        \eps &\sim \operatorname{LogNormal}(-2, 0.1)\\
+        \beta &\sim \operatorname{LogitNormal}(0, 1)\\
+        A_0 &\sim \operatorname{LogNormal}(-0.5, 0.1)\\
+    \end{align*}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    Hierarchical model
+    \begin{align*}
+        \log Y_k &\sim \operatorname{Normal}(\log A_k + \log L \cdot \beta, \eps)\\
+        \eps &\sim \operatorname{LogNormal}(-2, 0.1)\\
+        \beta &\sim \operatorname{LogitNormal}(0, 1)\\
+        A_k &\sim \operatorname{LogNormal}(\alert<2>{\log A_{\text{pop}}}, \alert<2>{\sigma_A})\\
+        \alert<2>{A_{\text{pop}}}&\alert<2>{\sim \operatorname{LogNormal}(-0.5, 0.1)}\\
+        \alert<2>{\sigma_A}&\alert<2>{\sim \operatorname{LogNormal}(-2, 0.1)}
+    \end{align*}
+    \end{column}
+    \end{columns}
+\visible<2>{
+\begin{block}{Hint}
+You can reuse some parameters, just add reasonable variability $\sigma_A$
+\end{block}
+}
+\end{frame}
+\section{Discussion}
+\begin{frame}{Discussion Time}
+Setting priors
+    \begin{itemize}
+        \item Sometimes you do not have expert knowledge
+        \item Sometimes parametrization does not allow you to set a good prior
+        \item Sometimes prior predictive depends on many parameters
+        \item You are limited in time
+        \item Using hyperpriors
+    \end{itemize}
+\end{frame}
+\end{document}

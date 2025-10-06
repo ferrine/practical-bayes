@@ -1,0 +1,93 @@
+\ProvidesPackage{ferres}
+
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+
+%theme
+\usetheme{AnnArbor}
+\usecolortheme{crane}
+\setbeamercolor{alerted text}{fg=red}
+\usepackage{tikz}
+\usepackage{calc}
+\usepackage{minted}
+\hypersetup{%
+  colorlinks=true,% hyperlinks will be coloured
+  linkcolor=blue,% hyperlink text will be green
+  linkbordercolor=red,% hyperlink border will be red
+}
+\newminted{python}{
+           fontsize=\scriptsize}
+\newcommand{\nologo}{\setbeamertemplate{logo}{}}
+
+\def\checkmark{\tikz\fill[scale=0.7](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;}
+\def\checkmarksmall{\tikz\fill[scale=0.5](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;}
+\newcommand{\cond}{\;|\;}
+\setbeamertemplate{enumerate items}[circle]
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{section in toc}[circle]
+\setbeamertemplate{subsection in toc}[square]
+\beamertemplatenavigationsymbolsempty
+\makeatletter
+\newcommand\ifratio[3]{%
+\ifnum#1=169%
+    \ifdim\beamer@paperwidth=16.00cm\relax%
+        \ifdim\beamer@paperheight=9.00cm\relax%
+            #2%
+        \else%
+            #3%
+        \fi%
+    \else%
+        #3%
+    \fi%
+\else%
+    \ifnum#1=43%
+        \ifdim\beamer@paperwidth=12.80cm\relax%
+            \ifdim\beamer@paperheight=9.60cm\relax%
+                #2%
+            \else%
+                #3%
+            \fi%
+        \else%
+            #3%
+        \fi%
+    \fi%
+\fi%
+}
+\setbeamertemplate{footline}
+{
+	\leavevmode%
+	\hbox{%
+		\begin{beamercolorbox}[wd=.30\paperwidth,ht=2.25ex,dp=1ex,center]{palette primary}%
+			\usebeamerfont{author in head/foot}\insertshortauthor
+		\end{beamercolorbox}%
+		\begin{beamercolorbox}[wd=.40\paperwidth,ht=2.25ex,dp=1ex,center]{palette secondary}%
+			\usebeamerfont{title in head/foot}\insertshorttitle
+		\end{beamercolorbox}%
+		\begin{beamercolorbox}[wd=.30\paperwidth,ht=2.25ex,dp=1ex,right]{palette primary}%
+				\insertshortinstitute\hspace*{4ex}\insertframenumber{} / \inserttotalframenumber\hspace*{2ex}
+		\end{beamercolorbox}
+	}%
+	\vskip0pt%
+}
+\makeatletter
+\def\framelogosoffset{-0.29cm}
+\DeclareOption{notopbar}{%
+    \setbeamertemplate{headline}{}
+    \def\framelogosoffset{0.07cm}
+}
+\newcommand{\framelogo}[1]{\def\thisframelogos{#1}}
+
+\addtobeamertemplate{frametitle}{}{%
+\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north east,yshift=\framelogosoffset] at (current page.north east) {%
+    \foreach \img in \thisframelogos {%
+        \hspace{0.5ex}%
+        \includegraphics[height=0.8cm]{\img}%
+    }%
+};
+\end{tikzpicture}}
+
+\ProcessOptions \relax

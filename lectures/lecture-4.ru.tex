@@ -1,0 +1,442 @@
+\documentclass{beamer}
+\usepackage{ferres}
+\usepackage{caption}
+\usepackage{subcaption}
+\framelogo{img/msu-logo}
+\usepackage[OT2,T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian,english]{babel}
+\usepackage{hyperref}
+
+%math
+\input{math_commands.tex}
+\author{Максим Кочуров}
+\title[Прикладные байесовские методы]{Гауссовские процессы, часть 1}
+\institute[МГУ]{МГУ им. М.В. Ломоносова}
+\date{Лекция 4}
+\usepackage{caption} % Кастомные названия объектов
+\captionsetup[figure]{name=Рис.} %тут можно вписать много опций, но я оставил только касающуюся вопроса
+
+\begin{document}
+\begin{frame}
+	\maketitle
+\end{frame}
+\begin{frame}{Содержание}
+\tableofcontents
+\end{frame}
+\section{Введение}
+\subsection{Подготовка}
+\begin{frame}{Непараметрические модели}
+    \begin{itemize}
+        \item Предположения обычно весьма условны условны
+        \visible<2->{
+        \begin{itemize}
+            \item Априорные распределения на функции
+            \item Априорные распределения на временные или пространственные эффекты
+        \end{itemize}}
+        \item Структура (функции) задаётся априорно 
+        \visible<3->{
+        \begin{itemize}
+            \item Почти не изменяется
+            \item Волатильна 
+            \item Принимает значения из диапазона между $y_0$ и $y_1$
+            \item экстраполирует периодичность
+            \item Может иметь другие структурные допущения
+        \end{itemize}}
+        \item Это характерно не только для Гауссовских процессов
+        \visible<4->{
+        \begin{itemize}
+            \item Процесс Дирихле
+            \item Байесовские аддитивные регессионые деревья (BART)
+            \item И еще много для чего
+        \end{itemize}}
+    \end{itemize}
+\end{frame}
+\begin{frame}{Обозначения}
+$x \in \R^n$, $y\in\R$
+    \begin{align*}
+    Y &\sim \mathcal{GP}(\alert<3>{m(x)}, \alert<4>{k(x, x')})\\
+    \visible<2->{\begin{bmatrix} y_1 \\ \vdots \\ y_N \\ \end{bmatrix} &\sim
+\mathcal{N}\left(
+  \alert<3>{\begin{bmatrix} m(x_1)  \\\vdots\\ m(x_N)    \\ \end{bmatrix}} \,,
+  \alert<4>{\begin{bmatrix} k(x_1,x_1)    & \dots & k(x_1, x_N)    \\
+                  \vdots & \ddots& \vdots \\
+                  k(x_N, x_1) & \dots & k(x_N, x_N)  \\ \end{bmatrix}}
+        \right) \,}
+    \end{align*}
+    \begin{enumerate}
+        \item<2-> $\mathcal{GP}$ Гауссовский процесс - обычно, с $m(x)$ в качестве среднего и ковариационной матрицей $k(x, x')$
+        \item<3-|alert@3> $m(x)$ - функция среднего, например
+        \begin{itemize}
+            \item Линейная регрессия $m(x) = x^\top \beta$
+            \item Константа или ноль $m(x) = c$
+            \item Другие функции на выбор, например $m(x) = \sin(x)$
+        \end{itemize}
+        \item<4-|alert@4> $k(x, x')$ - ядровая функция, мера схожести между $x$ и $x'$
+        \begin{itemize}
+            \item $[K]_{ij}=k(x_i, x_j)$ симметричная и положительно определенная матрица
+        \end{itemize}
+    \end{enumerate}
+\end{frame}
+\begin{frame}{Ядровая функция}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+    Напомним, что $\mathcal{GP}(M(x), K(x, x'))$ является, по сути, нормальным распределением. Тогда ядро может быть задано следующим образом:
+    \begin{align*}
+        k(x, x') &= RBF(x, x')\\
+        & = \exp(-||x-x'||/2\alert<2>{L})
+    \end{align*}
+    \visible<2->{
+    \begin{block}{Интерпретация параметра}
+        \alert{$L$} - \textbf{масштаб длины} $x$, что малые изменения не меняют $y$ сильно
+    \end{block}}
+\end{column}
+\begin{column}{0.5\linewidth}
+\only<1-2>{
+    \begin{figure}
+        \centering
+        \captionsetup{justification=centering}
+        \includegraphics[width=\linewidth]{img/kernel_1.png}
+        \caption{Ядро RBF (пространство данных)}
+    \end{figure}
+}
+\only<3->{
+    \begin{figure}
+        \centering
+        \captionsetup{justification=centering}
+        \includegraphics[width=\linewidth]{img/kernel_1.1.png}
+        \caption{Ядро RBF (ковариационная матрица)}
+    \end{figure}
+}
+\end{column}
+\end{columns}
+\end{frame}
+\subsection{Математика ядерных методов}
+\begin{frame}{Математика ядерных методов}
+    Ядра можно комбинировать. Если $k_1(x, x')$ и $k_2(x, x')$ удовлетворяют свойствам ядра, то
+    \begin{enumerate}
+        \item $k_*(x, x') = a\cdot k_1(x, x') + b \cdot k_2(x, x')$ удовлетворяет свойствам ядра
+        \begin{itemize}
+            \item Правило сложения
+            \item $a,b>0$
+        \end{itemize}
+        \item $k_*(x, x') = k_1(x, x')^a \cdot k_2(x, x')^b$ удовлетворяет свойствам ядра
+        \begin{itemize}
+            \item Правило умножения
+            \item $a,b>0$
+        \end{itemize} 
+    \end{enumerate}
+\pause
+При параметризации обычно настраиваются следующее
+\begin{itemize}
+    \item Белый шум $\varepsilon$
+    \item Амплитуда $\sigma$
+    \item Масштаб длины $L$
+\end{itemize}
+\begin{equation*}
+    k(x, x') \cdot \sigma^2 + \varepsilon^2
+\end{equation*}
+\end{frame}
+\subsection{Основные гиперпараметры}
+\begin{frame}{Масштаб длины}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+        \begin{itemize}
+        \item Как \textbf{сильно} меняется y 
+        \item Не оценивает величину изменений!
+        \item Хорошо подбирается итеративно
+        \item Трудно оценить эмпирически
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+        \begin{equation*}
+            k(\alert{x}, \alert{x'}) \cdot \sigma^2 + \varepsilon^2 
+        \end{equation*}
+    \end{column}
+\end{columns}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/lenthscales_1}
+        \caption{Сравнение различных масштабов длины}
+    \end{figure}
+\end{frame}
+\begin{frame}{Соображению по подбору масштаба длины}
+\begin{columns}
+\begin{column}{0.5\linewidth}
+\begin{itemize}
+    \item<1-> \textbf{Периодичность} данных
+    \begin{itemize}
+        \item Для годовых данных подойдет $L$ в 1 год  
+        \item Интерполяция на пропущенные наблюдения
+        \item Интерполяция на более частотные данные (помесячные) 
+    \end{itemize}
+    \item<2-> \textbf{Другие примеры}
+    \begin{itemize}
+        \item Дистанция (км, м, см)
+        \item Возраст
+        \item Длительность обучения
+    \end{itemize}
+\end{itemize}    
+\end{column}
+\begin{column}{0.5\linewidth}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/russia_gdp}
+        \caption{ВВП России (\href{https://tradingeconomics.com/russia/gdp}{tradingeconomics.com})}
+    \end{figure}    
+\end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Амплитуда}
+\begin{equation*}
+    k(x, x') \cdot \alert{\sigma^2} + \varepsilon^2
+\end{equation*}
+\begin{itemize}
+    \item Насколько изменчива зависимая переменная
+    \item Не стандартное отклонение (т.е. не белый шум)
+    \item Априорное распределение подбирается на основе предиктивного
+\end{itemize}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/amplitude}
+    \caption{Сравнение амплитуд ($\sigma$) }
+\end{figure}
+\end{frame}
+\begin{frame}{Амплитуда и Белый шум}
+\begin{equation*}
+    k(x, x') \cdot \sigma^2 + \alert{\varepsilon^2}
+\end{equation*}
+    \begin{itemize}
+        \item Белый шум не стоит путатать с амплитудой
+    \end{itemize}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/white_noise}
+        \caption{Сравнение белого шума ($\varepsilon$)}
+    \end{figure}
+\end{frame}
+\begin{frame}{Подводим итоги}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+        \begin{itemize}
+            \item<2-|alert@2> масштаб длины $L$ -- размерность исходных данных
+            \item<3-|alert@3> амплитуда $\sigma$ -- изменчивость результата
+            \item<4-|alert@4> $\varepsilon$ -- белый шум результата
+        \end{itemize}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \begin{align*}
+                k(x, x') &= RBF(x, x')\cdot \alert<3>{\sigma^2} + \alert<4>{\varepsilon^2}\\
+                &= \exp(-||x - x'||/2\alert<2>{L})\cdot \alert<3>{\sigma^2} + \alert<4>{\varepsilon^2}
+            \end{align*}
+        \end{column}
+    \end{columns}
+    \visible<5>{
+    \begin{block}{Заметка}
+            Масштаб длины можно вынести из ядровой функции, так как для большинства из них это не внутреннее свойство
+            \begin{equation*}
+                \exp(-||x - x'||/2\alert<2>{L}) = \exp(-||x/\alert{L} - x'/\alert{L}||/2)
+            \end{equation*}
+        \end{block}
+    }
+\end{frame}
+\subsection{Виды ядер}
+\begin{frame}{Виды ядер}
+Каждое ядро -- это структурное ограничение
+\begin{columns}
+    \begin{column}{0.6\linewidth}
+    \begin{itemize}
+        \item<alert@2> Стационарные
+        \begin{itemize}
+            \item<2-> ''При экстраполяции распределение вернется к априорному''
+        \end{itemize}
+        \item<alert@3> Периодическое/цикличное
+        \begin{itemize}
+           \item<3-> ''Наблюдения неизменны во времени''
+        \end{itemize}
+        \item<alert@4> Линейное/полиномиальное (нестационарные)
+        \begin{itemize}
+            \item<4-> Линейная регрессия
+            \item<4-> Полиномиальная регрессия
+        \end{itemize}
+    \end{itemize}
+    \end{column}
+    \begin{column}{0.4\linewidth}
+    \only<2>{
+    \includegraphics[width=\linewidth]{img/rational_quadratic}
+    \includegraphics[width=\linewidth]{img/exponential}
+    }
+    \only<3>{
+    \includegraphics[width=\linewidth]{img/circular}
+    \includegraphics[width=\linewidth]{img/circular_2}
+    }
+    \only<4->{
+    \includegraphics[width=\linewidth]{img/linear}
+    \includegraphics[width=\linewidth]{img/poly}
+    }
+    \end{column}
+\end{columns}
+\visible<5->{
+\begin{block}{Математическое преимущество ядер}
+Можно комбинировать разные семейства ядер. Пример \href{https://www.pymc.io/projects/examples/en/latest/gaussian_processes/GP-MeansAndCovs.html}{здесь}. Комбинирование ядер -- это искусство (разберем на семинаре)
+\end{block}}
+\end{frame}
+\subsection{Математика ядер}
+\begin{frame}{Комбинации ядер}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/periodic_exp_prior}
+    \caption{Экспоненциальные и периодические ядра}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Комбинации ядер}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/periodic3_prior}
+    \caption{Сумма периодических ядер}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Комбинации ядер}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{img/linear_periodic}
+    \caption{Линейные и периодические ядра}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Выводы}
+    \begin{itemize}
+        \item Ядра отображают структурные особенности
+        \item Особенности можно вычленить из данных
+        \item Комбинируя ядра можно учитывать несколько особенностей данных
+    \end{itemize}
+\end{frame}
+
+\section{Разбираем пример}
+\subsection{Пространственная иерархия}
+\begin{frame}{Мотивация}
+    Есть несколько примеров, когда гауссовские процессы -- решение проблемы. Например: 
+    \begin{itemize}
+        \item Параметры изменяются во времени %\cite{rolling_regression}
+        \item Данные -- временные ряды %\cite{forecasting_gp}
+        \item Данные -- пространственные
+        \item Данные -- пространственные, с панельной структурой
+    \end{itemize}
+\end{frame}
+\begin{frame}{Разбираем пример}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            Смотрим на данные по 8 школам
+            \begin{align*}
+                \mu &\sim \operatorname{Normal}(0, 5)\\
+    \tau &\sim \operatorname{HalfCauchy}(5)\\
+    \theta_i &\sim \operatorname{Normal}(\mu, \tau)\\
+    y_i &\sim \operatorname{Normal}(\theta_i, \sigma_i)
+            \end{align*}
+        Данные -- пары рядов $\left\{(y_i, \sigma_i)\right\}$
+        
+        \visible<2->{
+        \begin{itemize}
+            \item Что если у нас появится дополнительная информация? 
+            \item Учтем расположение школ?
+        \end{itemize}
+        }
+        \visible<3>{
+        \begin{block}{Предположение}
+        Соседние школы похожи
+        \end{block}
+        }
+        \end{column}
+        \begin{column}{0.5\linewidth}
+        \visible<2->{
+        \includegraphics[width=\linewidth]{img/schools_coords}
+        }
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Гауссовский процесс в пространстве}
+    \begin{itemize}
+        \item Гладкая функция в двумерном пространстве
+        \item Масштаб длины важен и его можно вычислить
+    \end{itemize}
+    \includegraphics[width=\linewidth]{img/gp_spatial_prior}
+    \pause
+    \begin{block}{Идея}
+    Вместо независимой иерархии применим GP-иерархию!
+    \end{block}
+\end{frame}
+\begin{frame}{GP-иерархии}
+\begin{columns}[t]
+    \begin{column}{0.5\linewidth}
+    \textbf{До:} (центрированное)
+\begin{align*}
+                \mu &\sim \operatorname{Normal}(0, 5)\\
+    \tau &\sim \operatorname{HalfCauchy}(5)\\
+    \alert<2,4>{\theta_i} &\alert<2,4>{\sim \operatorname{Normal}(\mu, \tau)}\\
+    y_i &\sim \operatorname{Normal}(\theta_i, \sigma_i)
+            \end{align*}
+    (нецентрированное)
+    \begin{align*}
+        \mu &\sim \operatorname{Normal}(0, 5)\\
+        \tau &\sim \operatorname{HalfCauchy}(5)\\
+        \alert<3,4>{\bar\theta_i} &\alert<3,4>{\sim \operatorname{Normal}(0, 1)}\\
+        \alert<3>{\theta_i} &\alert<3>{= \mu + \tau \cdot \bar\theta_i} \\
+        y_i &\sim \operatorname{Normal}(\theta_i, \sigma_i)
+    \end{align*}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \textbf{После:}  (нецентрированное + GP)
+    \begin{align*}
+        \mu &\sim \operatorname{Normal}(0, 5)\\
+        \tau &\sim \operatorname{HalfCauchy}(5)\\
+        \alert<5>{\bar\theta_i} &\alert<5>{\sim \mathcal{GP}(x_i)}\\
+        \theta_i &= \mu + \tau \cdot \bar\theta_i \\
+        y_i &\sim \operatorname{Normal}(\theta_i, \sigma_i)
+    \end{align*}
+    \only<2>{
+    \begin{block}{Комментарий}
+    У центрированного распределения есть сложности с геометрией (см. лек. 2)
+    \end{block}
+    }
+    \only<3>{
+    \begin{block}{Комментарий}
+    Проблемы можно решить нецентрированной параметризацией 
+    \end{block}
+    }
+    \only<4>{
+    \begin{block}{Комментарий}
+    В изначальной модели $\theta_i$ (или $\bar\theta_i$) независимы для разных школ
+    \end{block}
+    }
+    \only<5>{
+    \begin{block}{Комментарий}
+    Гауссовский процесс добавляет зависимость, что делает соседские школы схожими. $\sigma_{\mathcal{GP}}=1$
+    \end{block}
+    }
+    \end{column}
+\end{columns}
+\end{frame}
+\begin{frame}{Результаты и выводы}
+\begin{columns}
+    \begin{column}{0.5\linewidth}
+    Когда гауссовские процессы хороши
+    \begin{enumerate}
+        \item Гибкая структура
+        \item Построение непростых иерархий
+        \item Предсказания для новых наблюдений
+    \end{enumerate}
+    \end{column}
+    \begin{column}{0.5\linewidth}
+    \includegraphics[width=\linewidth]{img/schools_gp_posterior}
+    \end{column}
+\end{columns}
+\end{frame}
+% \begin{frame}[allowframebreaks]
+% \frametitle{Источники}
+% \bibliographystyle{abbrv}
+% \bibliography{references.bib}
+% \end{frame}
+\end{document}
+% https://arxiv.org/pdf/0911.5367.pdf
