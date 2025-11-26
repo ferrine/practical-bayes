@@ -253,48 +253,48 @@ $x \in \R^n$, $y\in\R$
 \begin{frame}{Интеграция в модель}
     \includegraphics[width=\linewidth]{img/fourier-features-code.png}
 \end{frame}
-\section{Example}
-\subsection{Stochastic Volatility}
-\begin{frame}{Stochastic Volatility Model}
+\section{Пример}
+\subsection{Стохастическая волатильность}
+\begin{frame}{Модель стохастической волатильности}
     \begin{figure}
         \centering
         \includegraphics[width=\linewidth]{img/stoch_vol}
-        \caption{Stochastic Volatility Estimation for AAPL}
+        \caption{Оценка стохастической волатильности для AAPL}
     \end{figure}
-    \begin{block}{Read More}
+    \begin{block}{Подробнее}
     \url{https://github.com/quantopian/bayesalpha}
     \end{block}
 \end{frame}
-\begin{frame}{Key Ideas}
+\begin{frame}{Основные идеи}
     \begin{itemize}
-        \item Returns are constant
-        \item Volatility is not constant
-        \item Model volatility as a Gaussian process
-        \item Use approximations to speed up the model
-        \item Use GPU to do fast inference
+        \item Доходности постоянны%Returns are constant
+        \item Волатильность не постоянна%Volatility is not constant
+        \item Моделируем волатильность как гауссовский процесс%Model volatility as a Gaussian process
+        \item Используем приближения для ускорения модели%Use approximations to speed up the model
+        \item Используем GPU для быстрого вывода%Use GPU to do fast inference
     \end{itemize}
 \end{frame}
-\begin{frame}{Priors}
+\begin{frame}{Априорные распределения}
     \begin{itemize}
-        \item Returns
+        \item Доходности%Returns
         \begin{itemize}
-            \item<2-> Expect year return at orders $\pm100\%$
-            \item<3-> Daily return $\pm(2^{\tfrac{1}{250}}-1)$
-            \item<4-> The prior is insane but yet motivated, name your prior!
+            \item<2-> Ожидаем годовую доходность порядка $\pm100\%$%Expect year return at orders $\pm100\%$
+            \item<3-> Дневная доходность $\pm(2^{\tfrac{1}{250}}-1)$%Daily return $\pm(2^{\tfrac{1}{250}}-1)$
+            \item<4-> Априорное распределение безумно, но мотивировано, назовите своё!%The prior is insane but yet motivated, name your prior!
         \end{itemize}
-        \item Volatility
+        \item Волатильность%Volatility
         \begin{itemize}
-            \item<5-> Expect signal to noise $\frac{\text{mean}}{\text{std}}\approx 1$
-            \item<6-> $\log \text{std} = \log(2^{\tfrac{1}{250}}-1)$
+            \item<5-> Ожидаем отношение сигнал/шум $\frac{\text{mean}}{\text{std}}\approx 1$%Expect signal to noise $\frac{\text{mean}}{\text{std}}\approx 1$
+            \item<6-> $\log \text{std} = \log(2^{\tfrac{1}{250}}-1)$%$\log \text{std} = \log(2^{\tfrac{1}{250}}-1)$
         \end{itemize}
-        \item Time Component
+        \item Временная компонента%Time Component
         \begin{itemize}
-            \item<7-> After the model is framed
+            \item<7-> После построения модели%After the model is framed
         \end{itemize}
     \end{itemize}
 \end{frame}
-\begin{frame}{The Model}
-I did the modelling choice to make it as simple as possible
+\begin{frame}{Модель}
+Я выбрал моделирование максимально простым%I did the modelling choice to make it as simple as possible
     \begin{align*}
         \alert<2>{\text{return} }& \alert<2>{\sim \operatorname{Normal}(0, 2^{\tfrac{1}{250}}-1)}\\
         \alert<3>{\log\text{std}}& \alert<3>{\sim \operatorname{Normal}(\log(2^{\tfrac{1}{250}}-1), 0.05)}\\
@@ -305,44 +305,44 @@ I did the modelling choice to make it as simple as possible
         \alert<8>{\text{obs}_t }&\alert<8>{\sim \operatorname{Normal}(\text{return}, \exp(\log \text{std} + \Delta_t^{\log \text{std}}))}
     \end{align*}
 \end{frame}
-\begin{frame}{Make the model faster!}
+\begin{frame}{Ускорим модель!}
     \centering \Huge HSGP
 \end{frame}
-\begin{frame}{What is HSGP?}
-    HSGP \cite{riutortmayol2022practical} is a short of \textbf{H}ilbert \textbf{S}pace \textbf{G}aussian \textbf{P}rocess.
+\begin{frame}{Что такое HSGP?}
+    HSGP \cite{riutortmayol2022practical} -- это сокращение для \textbf{H}ilbert \textbf{S}pace \textbf{G}aussian \textbf{P}rocess.%HSGP \cite{riutortmayol2022practical} is a short of \textbf{H}ilbert \textbf{S}pace \textbf{G}aussian \textbf{P}rocess.
 
-            \textbf{Gentlemen FAQ:}
+            \textbf{Часто задаваемые вопросы:}%\textbf{Gentlemen FAQ:}
             \begin{itemize}
-                \item Approximates in function space
-                \item Works for Stationary kernels
-                \item Periodic Kernels are yet tricky
-                \item Implemented in PyMC
+                \item Аппроксимирует в функциональном пространстве%Approximates in function space
+                \item Работает для стационарных ядер%Works for Stationary kernels
+                \item Периодические ядра пока сложны%Periodic Kernels are yet tricky
+                \item Реализовано в PyMC%Implemented in PyMC
             \end{itemize}
     \includegraphics[width=\linewidth]{img/eigen-hsgp.png}
 \end{frame}
-\begin{frame}{Why HSGP?}
+\begin{frame}{Зачем нужен HSGP?}
     \begin{enumerate}
-        \item Time series models have a lot of time-points
-        \item Algorithm complexity grows very fast ($\mathcal{O}(n^3)$)
-        \item HSGP \cite{riutortmayol2022practical} reduces the complexity to just $\mathcal{O}(mn + m)$
+        \item Модели временных рядов имеют много временных точек%Time series models have a lot of time-points
+        \item Сложность алгоритма растёт очень быстро ($\mathcal{O}(n^3)$)%Algorithm complexity grows very fast ($\mathcal{O}(n^3)$)
+        \item HSGP \cite{riutortmayol2022practical} уменьшает сложность до $\mathcal{O}(mn + m)$%HSGP \cite{riutortmayol2022practical} reduces the complexity to just $\mathcal{O}(mn + m)$
             \begin{itemize}
-                \item $m$ - number of basis functions)
+                \item $m$ - количество базисных функций)%$m$ - number of basis functions)
             \end{itemize}
     \end{enumerate}
-    \begin{block}{Gaussian process are now fast!}
-        From $\mathcal{O}(n^3)$ to $\mathcal{O}(mn + m)$ makes so much sense!
+    \begin{block}{Гауссовские процессы теперь быстрые!}
+        Переход от $\mathcal{O}(n^3)$ к $\mathcal{O}(mn + m)$ имеет большой смысл!%From $\mathcal{O}(n^3)$ to $\mathcal{O}(mn + m)$ makes so much sense!
     \end{block}
 \end{frame}
-\begin{frame}{How to HSGP}
+\begin{frame}{Как использовать HSGP}
     \begin{columns}
         \begin{column}{0.5\linewidth}
-            There are two main parameters:
+            Есть два основных параметра:%There are two main parameters:
             \begin{itemize}
-                \item $L$ - extrapolation boundary
-                \item $m$ - number of basis functions
+                \item $L$ - граница экстраполяции%$L$ - extrapolation boundary
+                \item $m$ - количество базисных функций%$m$ - number of basis functions
             \end{itemize}
-            \begin{block}{You can use it}
-                No need to be a mathematician to set $L$ or $m$, there are good defaults in documentation.
+            \begin{block}{Вы можете использовать это}
+                Не нужно быть математиком, чтобы задать $L$ или $m$, в документации есть хорошие значения по умолчанию.%No need to be a mathematician to set $L$ or $m$, there are good defaults in documentation.
             \end{block}
         \end{column}
         \begin{column}{0.5\linewidth}
@@ -350,7 +350,7 @@ I did the modelling choice to make it as simple as possible
         \end{column}
     \end{columns}
 \end{frame}
-\begin{frame}{HSGP for Stochastic volatility}
+\begin{frame}{HSGP для стохастической волатильности}
     \begin{align*}
         \text{return} & \sim \operatorname{Normal}(0, 2^{\tfrac{1}{250}}-1)\\
         \log\text{std}& \sim \operatorname{Normal}(2^{\tfrac{1}{250}}-1, 0.05)\\
@@ -361,23 +361,23 @@ I did the modelling choice to make it as simple as possible
         \text{obs}_t &\sim \operatorname{Normal}(\text{return}, \exp(\log \text{std} + \Delta_t^{\log \text{std}}))
     \end{align*}
 \end{frame}
-\begin{frame}{Results}
+\begin{frame}{Результаты}
     \begin{figure}
         \centering
         \includegraphics[width=0.9\linewidth]{img/stoch_vol_posterior}
-        \caption{Trace plot for core parameters}
+        \caption{Трассировка для основных параметров}
     \end{figure}
 \end{frame}
-\begin{frame}{Takeaways}
+\begin{frame}{Выводы}
     \includegraphics[width=\linewidth]{img/stoch_vol}
     \begin{itemize}
-        \item Interpretable parameters
-        \item Splines make model much faster
-        \item Uncertainties for
+        \item Интерпретируемые параметры%Interpretable parameters
+        \item Сплайны делают модель намного быстрее%Splines make model much faster
+        \item Неопределённости для%Uncertainties for
         \begin{itemize}
-            \item average volatility
-            \item average returns
-            \item stochastic variation ($\alpha_{\text{vol}}$)
+            \item средней волатильности%average volatility
+            \item средних доходностей%average returns
+            \item стохастической вариации ($\alpha_{\text{vol}}$)%stochastic variation ($\alpha_{\text{vol}}$)
         \end{itemize}
     \end{itemize}
 \end{frame}
