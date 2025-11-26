@@ -253,7 +253,134 @@ $x \in \R^n$, $y\in\R$
 \begin{frame}{Интеграция в модель}
     \includegraphics[width=\linewidth]{img/fourier-features-code.png}
 \end{frame}
-\include{stoch-vol}
+\section{Example}
+\subsection{Stochastic Volatility}
+\begin{frame}{Stochastic Volatility Model}
+    \begin{figure}
+        \centering
+        \includegraphics[width=\linewidth]{img/stoch_vol}
+        \caption{Stochastic Volatility Estimation for AAPL}
+    \end{figure}
+    \begin{block}{Read More}
+    \url{https://github.com/quantopian/bayesalpha}
+    \end{block}
+\end{frame}
+\begin{frame}{Key Ideas}
+    \begin{itemize}
+        \item Returns are constant
+        \item Volatility is not constant
+        \item Model volatility as a Gaussian process
+        \item Use approximations to speed up the model
+        \item Use GPU to do fast inference
+    \end{itemize}
+\end{frame}
+\begin{frame}{Priors}
+    \begin{itemize}
+        \item Returns
+        \begin{itemize}
+            \item<2-> Expect year return at orders $\pm100\%$
+            \item<3-> Daily return $\pm(2^{\tfrac{1}{250}}-1)$
+            \item<4-> The prior is insane but yet motivated, name your prior!
+        \end{itemize}
+        \item Volatility
+        \begin{itemize}
+            \item<5-> Expect signal to noise $\frac{\text{mean}}{\text{std}}\approx 1$
+            \item<6-> $\log \text{std} = \log(2^{\tfrac{1}{250}}-1)$
+        \end{itemize}
+        \item Time Component
+        \begin{itemize}
+            \item<7-> After the model is framed
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+\begin{frame}{The Model}
+I did the modelling choice to make it as simple as possible
+    \begin{align*}
+        \alert<2>{\text{return} }& \alert<2>{\sim \operatorname{Normal}(0, 2^{\tfrac{1}{250}}-1)}\\
+        \alert<3>{\log\text{std}}& \alert<3>{\sim \operatorname{Normal}(\log(2^{\tfrac{1}{250}}-1), 0.05)}\\
+        \alert<4>{\text{ls}} & \alert<4>{\sim \operatorname{Gamma}(30, 5) }\\
+        \alert<5>{\alpha_{\text{vol}} }& \alert<5>{\sim \operatorname{Exponential}(100)}\\
+        \alert<6>{K(*, *) }& \alert<6>{= \alpha_{\text{vol}} \operatorname{Matern32}(\text{ls})}\\
+        \alert<7>{\Delta_t^{\log \text{std}} }&\alert<7>{\sim \mathcal{GP}(0, K)}\\
+        \alert<8>{\text{obs}_t }&\alert<8>{\sim \operatorname{Normal}(\text{return}, \exp(\log \text{std} + \Delta_t^{\log \text{std}}))}
+    \end{align*}
+\end{frame}
+\begin{frame}{Make the model faster!}
+    \centering \Huge HSGP
+\end{frame}
+\begin{frame}{What is HSGP?}
+    HSGP \cite{riutortmayol2022practical} is a short of \textbf{H}ilbert \textbf{S}pace \textbf{G}aussian \textbf{P}rocess.
+
+            \textbf{Gentlemen FAQ:}
+            \begin{itemize}
+                \item Approximates in function space
+                \item Works for Stationary kernels
+                \item Periodic Kernels are yet tricky
+                \item Implemented in PyMC
+            \end{itemize}
+    \includegraphics[width=\linewidth]{img/eigen-hsgp.png}
+\end{frame}
+\begin{frame}{Why HSGP?}
+    \begin{enumerate}
+        \item Time series models have a lot of time-points
+        \item Algorithm complexity grows very fast ($\mathcal{O}(n^3)$)
+        \item HSGP \cite{riutortmayol2022practical} reduces the complexity to just $\mathcal{O}(mn + m)$
+            \begin{itemize}
+                \item $m$ - number of basis functions)
+            \end{itemize}
+    \end{enumerate}
+    \begin{block}{Gaussian process are now fast!}
+        From $\mathcal{O}(n^3)$ to $\mathcal{O}(mn + m)$ makes so much sense!
+    \end{block}
+\end{frame}
+\begin{frame}{How to HSGP}
+    \begin{columns}
+        \begin{column}{0.5\linewidth}
+            There are two main parameters:
+            \begin{itemize}
+                \item $L$ - extrapolation boundary
+                \item $m$ - number of basis functions
+            \end{itemize}
+            \begin{block}{You can use it}
+                No need to be a mathematician to set $L$ or $m$, there are good defaults in documentation.
+            \end{block}
+        \end{column}
+        \begin{column}{0.5\linewidth}
+            \includegraphics[width=\linewidth]{img/hsgp-parameters.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{HSGP for Stochastic volatility}
+    \begin{align*}
+        \text{return} & \sim \operatorname{Normal}(0, 2^{\tfrac{1}{250}}-1)\\
+        \log\text{std}& \sim \operatorname{Normal}(2^{\tfrac{1}{250}}-1, 0.05)\\
+        \text{ls} & \sim \operatorname{Gamma}(30, 5) \\
+        \alpha_{\text{vol}} & \sim \operatorname{Exponential}(100)\\
+        K(*, *) & = \alpha_{\text{vol}} \operatorname{Matern32}(\text{ls})\\
+        \Delta_{t}^{\log \text{std}} &\sim \mathcal{HSGP}(0, K)\\
+        \text{obs}_t &\sim \operatorname{Normal}(\text{return}, \exp(\log \text{std} + \Delta_t^{\log \text{std}}))
+    \end{align*}
+\end{frame}
+\begin{frame}{Results}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.9\linewidth]{img/stoch_vol_posterior}
+        \caption{Trace plot for core parameters}
+    \end{figure}
+\end{frame}
+\begin{frame}{Takeaways}
+    \includegraphics[width=\linewidth]{img/stoch_vol}
+    \begin{itemize}
+        \item Interpretable parameters
+        \item Splines make model much faster
+        \item Uncertainties for
+        \begin{itemize}
+            \item average volatility
+            \item average returns
+            \item stochastic variation ($\alpha_{\text{vol}}$)
+        \end{itemize}
+    \end{itemize}
+\end{frame}
 \begin{frame}[allowframebreaks]
 \frametitle{Библиография}
 \bibliographystyle{abbrv}
