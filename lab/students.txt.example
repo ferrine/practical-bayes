@@ -1,0 +1,17 @@
+# Optional hard roster for the lab hub.
+#
+# Copy this file into the VM as /var/lib/jupyterhub/students.txt (it lives on
+# the persistent data disk, so it survives rebuilds) and restart the hub:
+#
+#     systemctl restart jupyterhub
+#
+# With the file present, only the usernames listed here -- plus the admins from
+# ./launch.sh --admin -- may log in. Signup still works, but a name that is not
+# on the list will be refused at login, INCLUDING accounts that already existed
+# before the roster was introduced. Delete the file and restart to go back to
+# approval-only mode, where the /hub/authorize queue is the whitelist.
+#
+# One username per line; blank lines and #-comments are ignored.
+
+ivanov
+petrova

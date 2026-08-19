@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Course materials for "Practical Bayesian Methods" (Прикладные байесовские методы), taught at MSU by Maxim Kochurov (PyMC core dev). Three kinds of content:
+Course materials for "Practical Bayesian Methods" (Прикладные байесовские методы), taught at MSU by Maxim Kochurov (PyMC core dev). Four kinds of content:
 
 - `lectures/` — LaTeX **beamer** slide decks, maintained in **two languages**.
 - `seminars/` — Jupyter notebooks (PyMC) used live in class, with worked solutions under `seminars/solved/`.
 - `ha/` — homework notebooks (`ha-N.ipynb`) plus their data files.
+- `lab/` — the JupyterHub VM students actually work in (see below).
 
 ## Version control: git
 
@@ -67,6 +68,28 @@ The individual TeX packages still come from `cache.nixos.org`; only the final co
 Run against the conda environment defined in `environment.yaml` (`conda env create -f environment.yaml`, env name `practical-bayes-env`). Core stack: **PyMC ≥5.8**, PyTensor, ArviZ, NumPy, `pandas<2.0`, matplotlib/seaborn, scikit-learn. The `pandas<2.0` pin is intentional.
 
 `seminars/N-*.ipynb` are the in-class (often blank-to-fill) versions; `seminars/solved/` holds the completed counterparts. Keep the two in sync when editing a seminar.
+
+## The lab VM (`lab/`)
+
+A NixOS guest run under QEMU/KVM that serves JupyterHub to the class. Same plain-Nix + npins convention as the lectures (it reuses `../npins`), no flakes. `lab/README.md` is the operator-facing doc; the short version:
+
+```sh
+./lab/launch.sh --admin ferrine       # build + boot; 127.0.0.1:8000 by default
+./lab/launch.sh --help                # every knob (host/port/RAM/CPU/caps/roster)
+```
+
+Structure: `launch.sh` (flags → `nix-build` → run) → `default.nix` (arguments → NixOS eval) → `configuration.nix` (the guest) + `vm.nix` (QEMU) + `python-env.nix` (the two Python envs) + `pkgs/` (two JupyterHub plugins missing from nixpkgs).
+
+Things that are easy to get wrong when editing this:
+
+- **Every knob goes through `nix-build` as an `--argstr`**, so all of `default.nix`'s arguments are strings and get converted in `labCfg`. Keep it that way — one code path, no build-time/runtime drift.
+- `import <nixpkgs/nixos>` does **not** pull in `virtualisation/qemu-vm.nix` (only `nixos-rebuild build-vm` does); `lab/default.nix` imports it explicitly.
+- `services.jupyterhub.extraConfig` is appended *after* the module's own settings, so anything set there wins — including `c.SystemdSpawner.cmd`, which is overridden with a wrapper that seeds `$HOME` from `/srv/course` on first spawn.
+- Students are **not** declarative Unix users. `SystemdSpawner.dynamic_users = True` gives each one a systemd `DynamicUser` whose `StateDirectory` (`/var/lib/private/<name>`) is their `$HOME`.
+- Persistence is one disk image, `lab/state/data.qcow2`, mounted at `/var/lib`: hub database (accounts, approvals) plus every home. `root.qcow2` is disposable. `lab/state/` is gitignored — **`data.qcow2` is the backup target**.
+- The kernel comes from nixpkgs and cannot be `pip install`-ed into; the supported way to extend it is `lab-venv <name>` (a `uv venv --system-site-packages` on top of the Nix env, registered as its own kernel). `programs.nix-ld` is enabled so manylinux wheels work.
+- Nixpkgs gives PyMC 6 / ArviZ 1 / pandas 3, which is **ahead** of what the seminars were written against (see the pin note above) — expect notebook porting work, not a config fix.
+- `python-env.nix` pins `pkgs.python313` rather than following `pkgs.python3`. After nixpkgs moved its default to 3.14, `nutpie`/`numpyro`/`bambi` stopped evaluating there (`tensorflow-bin` has no 3.14 build). Re-check the whole stack before raising it.
 
 ## Housekeeping
 

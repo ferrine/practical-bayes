@@ -165,6 +165,10 @@ cython_debug/
 result
 result-*
 
+# Lab VM state: disk images (root.qcow2, data.qcow2) and the built VM runner.
+# data.qcow2 holds the student home directories -- back it up, do not commit it.
+lab/state/
+
 # Ignore automatically generated direnv output
 .direnv
 
