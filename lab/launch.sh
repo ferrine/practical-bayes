@@ -32,6 +32,7 @@ IDLE_TIMEOUT=${LAB_IDLE_TIMEOUT:-7200}
 SSH_PORT=${LAB_SSH_PORT:-}
 SSH_KEY=${LAB_SSH_KEY:-}
 BUILD_ONLY=0
+DETACH=0
 
 # Extra flags for every nix-build below, word-split on purpose. Useful when the
 # machine's configured substituters are unreachable or slow -- see lab/README.md.
@@ -57,7 +58,19 @@ Options (each also settable as LAB_<NAME>):
   --ssh-port N         forward 127.0.0.1:N to guest sshd
   --ssh-key PATH       authorized_keys file for root in the guest
   --build-only         build the VM but do not start it
+  --detach             run in the background, survives this shell
   -h, --help           this message
+
+With --detach the VM is disowned from this terminal and leaves three files in
+the state directory:
+
+  lab-vm.pid           qemu's pid
+  lab-vm.log           the guest console
+  qemu-monitor.sock    QEMU monitor -- the graceful way to stop a detached VM:
+
+      echo system_powerdown | socat - UNIX-CONNECT:$STATE/qemu-monitor.sock
+
+  Killing the pid instead is the equivalent of yanking the power cord.
 EOF
 }
 
@@ -83,6 +96,7 @@ while [ $# -gt 0 ]; do
   --ssh-port) SSH_PORT=$2; shift 2 ;;
   --ssh-key) SSH_KEY=$2; shift 2 ;;
   --build-only) BUILD_ONLY=1; shift ;;
+  --detach) DETACH=1; shift ;;
   -h | --help) usage; exit 0 ;;
   *) die "unknown option '$1' (try --help)" ;;
   esac
@@ -144,6 +158,14 @@ if [ "$BUILD_ONLY" = 1 ]; then
 fi
 
 # --------------------------------------------------------------------- run
+PIDFILE="$STATE/lab-vm.pid"
+VMLOG="$STATE/lab-vm.log"
+MONITOR="$STATE/qemu-monitor.sock"
+
+if [ -e "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+  die "a VM from this state directory is already running (pid $(cat "$PIDFILE"), $PIDFILE)"
+fi
+
 cat <<EOF
 
     JupyterHub   http://$HOST:$PORT/
@@ -153,12 +175,41 @@ cat <<EOF
     guest        ${MEM_GIB} GiB RAM / $CPUS vCPU
     persistent   $DATA_IMG  (mounted at /var/lib)
 $([ -n "$SSH_PORT" ] && echo "    ssh          ssh -p $SSH_PORT root@127.0.0.1")
-
-    The VM console is attached to this terminal; type 'poweroff' there to stop
-    it cleanly. Run under tmux if you want it to outlive the session.
-
 EOF
 
 export NIX_DISK_IMAGE="$ROOT_IMG"
 export LAB_DATA_IMAGE="$DATA_IMG"
+
+if [ "$DETACH" = 1 ]; then
+  # A monitor socket is the only graceful way to shut down a VM whose console
+  # nobody is holding.
+  # -pidfile makes QEMU record its *own* pid (the runner script is only its
+  # parent) and remove the file when it exits, so the check above is reliable.
+  export QEMU_OPTS="${QEMU_OPTS:-} -monitor unix:$MONITOR,server,nowait -pidfile $PIDFILE"
+  rm -f "$MONITOR" "$PIDFILE"
+  setsid "$runner" >"$VMLOG" 2>&1 </dev/null &
+  runner_pid=$!
+  for _ in $(seq 1 120); do
+    [ -s "$PIDFILE" ] && break
+    kill -0 "$runner_pid" 2>/dev/null || die "the VM exited immediately; see $VMLOG"
+    sleep 0.5
+  done
+  [ -s "$PIDFILE" ] || die "QEMU did not write $PIDFILE; see $VMLOG"
+  cat <<EOF
+    pid          $(cat "$PIDFILE")   ($PIDFILE)
+    console log  $VMLOG
+    stop         echo system_powerdown | socat - UNIX-CONNECT:$MONITOR
+
+    Detached. It keeps running after this shell exits.
+
+EOF
+  exit 0
+fi
+
+cat <<EOF
+
+    The VM console is attached to this terminal; type 'poweroff' there to stop
+    it cleanly. Use --detach to run it in the background instead.
+
+EOF
 exec "$runner"

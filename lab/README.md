@@ -24,10 +24,33 @@ to your terminal. Defaults: **256 GiB RAM / 24 vCPU** for the guest, **16 GiB /
 ./lab/launch.sh --help          # every knob
 ./lab/launch.sh --host 0.0.0.0 --port 8000 --admin ferrine
 ./lab/launch.sh --build-only    # build without starting
+./lab/launch.sh --detach        # run in the background
 ```
 
-Type `poweroff` on the VM console to stop it cleanly. The VM dies with the
-terminal, so run it under `tmux` for anything long-lived.
+In the foreground the guest console is attached to your terminal and `poweroff`
+there stops it cleanly — but the VM dies with the terminal.
+
+### Running it detached
+
+`--detach` disowns the VM from the shell that started it and leaves three files
+in `lab/state/`:
+
+| file | |
+|---|---|
+| `lab-vm.pid` | QEMU's own pid (`-pidfile`), removed when it exits |
+| `lab-vm.log` | the guest console |
+| `qemu-monitor.sock` | QEMU monitor — how you stop it without a console |
+
+```sh
+echo system_powerdown | socat - UNIX-CONNECT:lab/state/qemu-monitor.sock  # graceful
+kill "$(cat lab/state/lab-vm.pid)"                                        # power cord
+```
+
+Launching again from the same state directory refuses to start while that pid
+is alive, so you cannot accidentally run two VMs on one data disk.
+
+Detached means no console, so pass `--ssh-port N --ssh-key ~/.ssh/id_ed25519.pub`
+if you want a way in for the admin operations below.
 
 Every option is also an environment variable (`LAB_HOST`, `LAB_PORT`,
 `LAB_MEM`, `LAB_CPUS`, `LAB_ADMINS`, …). All of them are passed through to
