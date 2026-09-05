@@ -13,7 +13,10 @@ let
   # (tensorflow-bin has no 3.14 build). A teaching environment should not
   # follow that bump by accident -- raise this on purpose, after checking the
   # whole stack still builds.
-  python = pkgs.python313;
+  python = pkgs.python313.override {
+    # jupyter-ai and its JupyterLab extensions, none of which nixpkgs carries.
+    packageOverrides = import ./pkgs/jupyter-ai.nix;
+  };
   callPackage = python.pkgs.callPackage;
 in
 rec {
@@ -38,6 +41,11 @@ rec {
     jupyterlab-git
     ipykernel
     ipywidgets
+
+    # AI assistant: chat panel, /commands, and agent support over ACP + MCP.
+    # Students supply their own provider credentials in the JupyterLab UI;
+    # those land in their own Jupyter config dir on the persistent disk.
+    jupyter-ai
 
     # --- Bayes ---
     pymc

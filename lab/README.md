@@ -141,6 +141,51 @@ The venv and the uv cache live in `$HOME`, i.e. on the persistent disk.
 `UV_PYTHON_DOWNLOADS=never` is set on purpose: a uv-managed interpreter would
 not see the Nix site-packages.
 
+## AI assistant (jupyter-ai)
+
+`jupyter-ai` 3.2 ships in the environment: a chat panel in JupyterLab, `/`
+commands, and agent support over ACP (`jupyter-ai-acp-client`) and MCP
+(`jupyter-server-mcp`).
+
+**Credentials are per-student and never touch this repo.** Each person sets
+their own provider and API key in the chat panel's settings; jupyter-ai writes
+it to their own Jupyter config directory, which lives in their home on the
+persistent disk. Nothing is shared, there is no course-wide key, and no billing
+flows through you.
+
+The Python SDKs are in the environment too (`anthropic`, `openai`, `litellm`,
+`langchain` + the anthropic/openai integrations), so a notebook cell can call a
+provider directly with a key the student supplies from their own environment.
+
+### Maintaining it
+
+`pkgs/jupyter-ai.nix` is a python `packageOverrides` function holding 14
+packages nixpkgs does not carry — 13 for jupyter-ai plus one pin. They are all
+pure `py3-none-any` wheels with the JavaScript already compiled, so there is no
+node/npm build; the wheels unpack into `share/jupyter/labextensions/` and
+`etc/jupyter/jupyter_server_config.d/` inside the env prefix, which JupyterLab
+already searches.
+
+Two things to know before touching it:
+
+- **The table moves as a set.** jupyter-ai 3.x pins its own sub-packages hard
+  (`>=0.3.0,<0.4.0` and friends), so bump all of them together, never one at a
+  time. Regenerate the pins with
+  `uv pip compile` on `jupyter-ai` and diff against nixpkgs.
+- **`agent-client-protocol` is held at 0.11.1** while nixpkgs ships 0.12.0,
+  because `jupyter-ai-acp-client` requires `>=0.11.0,<0.12.0`. That is the only
+  constraint violation among the 42 these packages declare — **re-check it on
+  every `npins update`**, since nixpkgs will keep moving.
+
+`pythonRuntimeDepsCheck` runs on each wheel, so a wrong dependency list fails
+the build rather than the running server. To verify a change end to end:
+
+```sh
+env=$(nix-build lab -A bayesEnv --no-out-link)
+ls "$env/share/jupyter/labextensions"        # frontend assets present
+"$env/bin/jupyter" server extension list     # every jupyter_ai_* validates OK
+```
+
 ## Admin operations
 
 Everything below is run on the VM console (autologin as root) or over ssh if
